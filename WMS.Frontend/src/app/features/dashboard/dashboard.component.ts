@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -25,6 +25,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private dashboardService = inject(DashboardService);
   private announcementService = inject(AnnouncementService);
   private employeeService = inject(EmployeeService);
+  private cdr = inject(ChangeDetectorRef);
 
   public username = '';
   public role = '';
@@ -62,6 +63,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.summary = res.summary;
         this.announcements = res.announcements;
         this.employees = res.employees;
+
+        this.cdr.detectChanges(); // Force DOM update so canvas tags are rendered
 
         // Initialize charts once data is loaded and DOM is updated
         setTimeout(() => {
@@ -116,7 +119,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       // Calculate headcounts per department dynamically
       const deptCounts: { [key: string]: number } = {};
       this.employees.forEach(emp => {
-        if (emp.status === 'Active') {
+        if (emp.status?.toLowerCase() === 'active') {
           const dept = emp.departmentName || 'Unassigned';
           deptCounts[dept] = (deptCounts[dept] || 0) + 1;
         }

@@ -308,11 +308,11 @@ export class ProjectDialogComponent implements OnInit {
     // Dates mapped as YYYY-MM-DD for standard html type="date" input
     let startStr = '';
     if (proj?.startDate) {
-      startStr = new Date(proj.startDate).toISOString().split('T')[0];
+      startStr = proj.startDate.substring(0, 10);
     }
     let endStr = '';
     if (proj?.endDate) {
-      endStr = new Date(proj.endDate).toISOString().split('T')[0];
+      endStr = proj.endDate.substring(0, 10);
     }
 
     this.form = this.fb.group({
@@ -335,7 +335,7 @@ export class ProjectDialogComponent implements OnInit {
       projectName: formVal.projectName,
       clientId: formVal.clientId || undefined,
       startDate: formVal.startDate,
-      endDate: formVal.endDate || undefined,
+      endDate: formVal.endDate || null,
       status: formVal.status
     };
 
