@@ -1,0 +1,126 @@
+<div style="display: flex; flex-direction: column; gap: 16px;">
+  <!-- Header Title Row -->
+  <div class="table-header-container" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+    <div>
+      <h1 class="wms-font-title">Clients</h1>
+      <p class="wms-font-subtitle">Manage customer directory, contact details, and status</p>
+    </div>
+    
+    <button mat-flat-button style="background-color: #3b82f6; color: white;" (click)="openAddDialog()">
+      <mat-icon>add</mat-icon>
+      <span>Add Client</span>
+    </button>
+  </div>
+
+  <!-- Search & Filter Card -->
+  <div class="filter-card" style="background: white; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; gap: 16px; align-items: center;">
+    <div class="filter-search" style="flex: 1;">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" style="width: 100%;">
+        <mat-label>Search clients...</mat-label>
+        <input matInput [formControl]="searchControl" placeholder="Search by name, location, or address...">
+        <mat-icon matPrefix>search</mat-icon>
+      </mat-form-field>
+    </div>
+
+    <div style="width: 200px;">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" style="width: 100%;">
+        <mat-label>Status Filter</mat-label>
+        <mat-select [formControl]="statusFilterControl">
+          <mat-option value="all">All Statuses</mat-option>
+          <mat-option value="active">Active Only</mat-option>
+          <mat-option value="inactive">Inactive Only</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
+
+  @if (!isLoading) {
+    <!-- Table -->
+    <div class="wms-table-container">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 70px;">#</th>
+            <th>CLIENT NAME</th>
+            <th>LOCATION</th>
+            <th>PHONE</th>
+            <th>ADDRESS</th>
+            <th>STATUS</th>
+            <th style="text-align: right; width: 160px;">ACTIONS</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (client of pagedClients; track client.clientId; let i = $index) {
+            <tr>
+              <td>
+                <div style="width: 32px; height: 32px; border-radius: 6px; background-color: #f3e8ff; color: #6b21a8; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; border: 1px solid #e9d5ff;">
+                  {{ client.clientName.substring(0, 1).toUpperCase() }}
+                </div>
+              </td>
+              <td style="font-weight: 600;">{{ client.clientName }}</td>
+              <td>
+                <div style="display: flex; align-items: center; gap: 4px; color: #475569;">
+                  <mat-icon style="font-size: 16px; width: 16px; height: 16px; color: #64748b;">place</mat-icon>
+                  <span>{{ client.clientLocation || 'N/A' }}</span>
+                </div>
+              </td>
+              <td style="color: #475569;">{{ client.clientPhoneNumber || 'N/A' }}</td>
+              <td style="color: #64748b; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                {{ client.clientAddress || 'N/A' }}
+              </td>
+              <td>
+                <span class="status-badge" [ngClass]="client.status ? 'active' : 'inactive'">
+                  {{ client.status ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+              <td style="text-align: right;">
+                <div style="display: flex; justify-content: flex-end; gap: 4px;">
+                  <button mat-icon-button (click)="openEditDialog(client)" matTooltip="Edit Client">
+                    <mat-icon style="color: #64748b;">edit</mat-icon>
+                  </button>
+                  
+                  @if (client.status) {
+                    <button mat-icon-button (click)="onDeactivate(client)" matTooltip="Deactivate Client">
+                      <mat-icon style="color: #ef4444;">block</mat-icon>
+                    </button>
+                  }
+
+                  <button mat-icon-button (click)="onDelete(client.clientId!)" matTooltip="Delete Client">
+                    <mat-icon style="color: #ef4444;">delete_outline</mat-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" style="text-align: center; color: #94a3b8; padding: 40px 0 !important;">
+                <mat-icon style="font-size: 40px; width: 40px; height: 40px;">contacts</mat-icon>
+                <p style="margin: 8px 0 0 0; font-size: 13px;">No clients found</p>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <mat-paginator [length]="filteredClients.length"
+                     [pageSize]="pageSize"
+                     [pageSizeOptions]="[5, 10, 25]"
+                     (page)="onPageChange($event)"
+                     style="border-top: 1px solid #e2e8f0;">
+      </mat-paginator>
+    </div>
+  } @else {
+    <!-- Spinner -->
+    <div style="display: flex; justify-content: center; align-items: center; height: 200px; flex-direction: column; gap: 12px; background: white; border-radius: 12px; border: 1px solid #e2e8f0;">
+      <mat-icon style="animation: spin 1.5s linear infinite; font-size: 36px; width: 36px; height: 36px; color: #3b82f6;">sync</mat-icon>
+      <span style="color: #64748b;">Loading clients...</span>
+    </div>
+  }
+</div>
+
+<style>
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+</style>

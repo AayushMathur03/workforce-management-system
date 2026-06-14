@@ -1,0 +1,109 @@
+<div style="display: flex; flex-direction: column; gap: 24px;">
+  <!-- Header Title -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+    <div>
+      <h1 class="wms-font-title">Announcements Board</h1>
+      <p class="wms-font-subtitle">Important updates, news, and notifications from the organization</p>
+    </div>
+    
+    <button *appHasRole="['Admin']" mat-flat-button style="background-color: #3b82f6; color: white;" (click)="openAddDialog()">
+      <mat-icon>add</mat-icon>
+      <span>Publish Announcement</span>
+    </button>
+  </div>
+
+  @if (isLoading) {
+    <!-- Spinner -->
+    <div style="display: flex; justify-content: center; align-items: center; height: 200px; flex-direction: column; gap: 12px; background: white; border-radius: 12px; border: 1px solid #e2e8f0;">
+      <mat-icon style="animation: spin 1.5s linear infinite; font-size: 36px; width: 36px; height: 36px; color: #3b82f6;">sync</mat-icon>
+      <span style="color: #64748b;">Loading announcements...</span>
+    </div>
+  } @else {
+    <!-- Admin View: Full Management Table -->
+    <div *appHasRole="['Admin']" class="wms-card">
+      <h2 style="font-size: 15px; font-weight: 700; color: #1e293b; margin: 0 0 16px 0;">Manage Announcements</h2>
+      
+      <div class="wms-table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>TITLE</th>
+              <th>MESSAGE PREVIEW</th>
+              <th>AUDIENCE</th>
+              <th>PUBLISHED DATE</th>
+              <th>STATUS</th>
+              <th style="text-align: right;">ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (ann of announcements; track ann.announcementId) {
+              <tr>
+                <td style="font-weight: 600;">{{ ann.title }}</td>
+                <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                  {{ ann.message }}
+                </td>
+                <td>
+                  <span class="status-badge wfo">{{ ann.audience }}</span>
+                </td>
+                <td>{{ ann.createdOn | date:'dd-MM-yyyy' }}</td>
+                <td>
+                  <span class="status-badge" [ngClass]="ann.isActive ? 'active' : 'inactive'">
+                    {{ ann.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+                <td style="text-align: right;">
+                  <div style="display: flex; justify-content: flex-end; gap: 4px;">
+                    <button mat-icon-button (click)="openEditDialog(ann)" matTooltip="Edit Announcement">
+                      <mat-icon style="color: #64748b;">edit</mat-icon>
+                    </button>
+                    @if (ann.isActive) {
+                      <button mat-icon-button (click)="deactivateAnnouncement(ann.announcementId)" matTooltip="Deactivate Announcement">
+                        <mat-icon style="color: #f59e0b;">toggle_on</mat-icon>
+                      </button>
+                    }
+                    <button mat-icon-button (click)="deleteAnnouncement(ann.announcementId)" matTooltip="Delete Announcement">
+                      <mat-icon style="color: #ef4444;">delete_outline</mat-icon>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" style="text-align: center; color: #94a3b8; padding: 40px 0 !important;">
+                  <mat-icon style="font-size: 40px; width: 40px; height: 40px;">campaign</mat-icon>
+                  <p style="margin: 8px 0 0 0; font-size: 13px;">No announcements published</p>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Regular Employee View: Cards Grid -->
+    <div *appHasRole="['Employee', 'Manager']" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
+      @for (ann of announcements; track ann.announcementId) {
+        <div class="wms-card" style="margin-bottom: 0; display: flex; flex-direction: column; gap: 12px; border-top: 4px solid #3b82f6;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <h3 style="font-size: 15px; font-weight: 700; color: #0f172a; margin: 0;">{{ ann.title }}</h3>
+            <span style="font-size: 11px; color: #94a3b8; font-weight: 500;">{{ ann.createdOn | date:'dd-MM-yyyy' }}</span>
+          </div>
+          
+          <p style="font-size: 13px; color: #475569; line-height: 1.6; margin: 0; flex: 1; white-space: pre-wrap;">
+            {{ ann.message }}
+          </p>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 10px; margin-top: 8px;">
+            <span class="status-badge" style="font-size: 10px; padding: 2px 8px;">Audience: {{ ann.audience }}</span>
+            <span style="font-size: 11px; color: #64748b;">Published by HR</span>
+          </div>
+        </div>
+      } @empty {
+        <div class="wms-card" style="grid-column: 1 / -1; text-align: center; color: #94a3b8; padding: 60px 0;">
+          <mat-icon style="font-size: 48px; width: 48px; height: 48px; color: #cbd5e1;">campaign</mat-icon>
+          <p style="margin: 12px 0 0 0; font-size: 15px;">No active announcements at the moment</p>
+        </div>
+      }
+    </div>
+  }
+</div>

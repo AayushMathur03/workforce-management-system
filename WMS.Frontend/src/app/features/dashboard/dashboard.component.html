@@ -1,0 +1,146 @@
+<div style="display: flex; flex-direction: column; gap: 16px;">
+  <!-- Dashboard Page Header -->
+  <div style="margin-bottom: 8px;">
+    <h1 class="wms-font-title">Dashboard</h1>
+    <p class="wms-font-subtitle">
+      Welcome back, <strong style="color: #0f172a;">{{ username }}</strong>
+      <span class="status-badge" [ngClass]="role.toLowerCase()" style="margin-left: 8px; vertical-align: middle;">{{ role }}</span>
+    </p>
+  </div>
+
+  @if (summary) {
+    <!-- KPI Cards Grid -->
+    <div class="kpi-grid">
+      <!-- Active Staff KPI -->
+      <div class="kpi-card color-staff">
+        <div class="kpi-icon-container">
+          <mat-icon>people</mat-icon>
+        </div>
+        <div class="kpi-content">
+          <span class="count">{{ summary.activeEmployees }} / {{ summary.totalEmployees }}</span>
+          <span class="label">Active Staff</span>
+        </div>
+      </div>
+
+      <!-- Present Today KPI -->
+      <div class="kpi-card color-attendance">
+        <div class="kpi-icon-container">
+          <mat-icon>check_circle</mat-icon>
+        </div>
+        <div class="kpi-content">
+          <span class="count">{{ summary.todayCheckIns }}</span>
+          <span class="label">Present Today</span>
+        </div>
+      </div>
+
+      <!-- Pending Leaves KPI -->
+      <div class="kpi-card color-leaves">
+        <div class="kpi-icon-container">
+          <mat-icon>pending_actions</mat-icon>
+        </div>
+        <div class="kpi-content">
+          <span class="count">{{ summary.pendingLeaves }}</span>
+          <span class="label">Pending Leaves</span>
+        </div>
+      </div>
+
+      <!-- Active Projects KPI -->
+      <div class="kpi-card color-projects">
+        <div class="kpi-icon-container">
+          <mat-icon>work</mat-icon>
+        </div>
+        <div class="kpi-content">
+          <span class="count">{{ summary.activeProjects }}</span>
+          <span class="label">Active Projects</span>
+        </div>
+      </div>
+
+      <!-- Total Clients KPI -->
+      <div class="kpi-card color-clients">
+        <div class="kpi-icon-container">
+          <mat-icon>group</mat-icon>
+        </div>
+        <div class="kpi-content">
+          <span class="count">{{ summary.totalClients }}</span>
+          <span class="label">Total Clients</span>
+        </div>
+      </div>
+
+      <!-- Total Departments KPI -->
+      <div class="kpi-card color-departments">
+        <div class="kpi-icon-container">
+          <mat-icon>business</mat-icon>
+        </div>
+        <div class="kpi-content">
+          <span class="count">{{ summary.totalDepartments }}</span>
+          <span class="label">Departments</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Analytics & Activity Row -->
+    <div class="dashboard-row">
+      <!-- Left side: Graphical Charts -->
+      <div class="charts-container">
+        <!-- Attendance Doughnut Chart -->
+        <div class="chart-card">
+          <h2>Today's Attendance Overview</h2>
+          <div class="chart-wrapper">
+            <canvas id="attendanceChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Department Headcount Pie Chart -->
+        <div class="chart-card">
+          <h2>Department Wise Headcount</h2>
+          <div class="chart-wrapper">
+            <canvas id="deptChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right side: Recent Active Announcements -->
+      <div>
+        <div class="announcements-card">
+          <h2>
+            <mat-icon>campaign</mat-icon>
+            <span>Announcements</span>
+          </h2>
+          
+          <div class="announcement-list">
+            @for (ann of announcements; track ann.announcementId) {
+              <div class="announcement-item">
+                <div class="item-header">
+                  <span class="title">{{ ann.title }}</span>
+                  <span class="date">{{ ann.createdOn | date:'dd-MM-yyyy' }}</span>
+                </div>
+                <p class="message">{{ ann.message }}</p>
+                <div style="margin-top: 6px;">
+                  <span class="status-badge" style="font-size: 9px; padding: 2px 6px;">Audience: {{ ann.audience }}</span>
+                </div>
+              </div>
+            } @empty {
+              <div class="no-announcements">
+                <mat-icon>campaign</mat-icon>
+                <span>No active announcements</span>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <!-- Loading overlay while fetching stats -->
+    <div style="display: flex; justify-content: center; align-items: center; height: 300px; flex-direction: column; gap: 16px; background: white; border-radius: 12px; border: 1px solid #e2e8f0;">
+      <mat-icon style="animation: spin 1.5s linear infinite; font-size: 40px; width: 40px; height: 40px; color: #3b82f6;">sync</mat-icon>
+      <span style="color: #64748b; font-weight: 500;">Loading dashboard details...</span>
+    </div>
+  }
+</div>
+
+<style>
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+</style>

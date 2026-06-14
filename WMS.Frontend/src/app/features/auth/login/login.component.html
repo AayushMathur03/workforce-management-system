@@ -1,0 +1,56 @@
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <div class="logo-icon">
+        <mat-icon style="font-size: 28px; width: 28px; height: 28px;">inventory_2</mat-icon>
+      </div>
+      <h1>Workforce Portal</h1>
+      <p>Sign in to your account to continue</p>
+    </div>
+
+    <!-- Login Form -->
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <!-- Username Field -->
+      <mat-form-field appearance="outline">
+        <mat-label>Username</mat-label>
+        <input matInput formControlName="username" type="text" placeholder="Enter username" autocomplete="username">
+        <mat-icon matPrefix>person</mat-icon>
+        @if (loginForm.get('username')?.touched && loginForm.get('username')?.hasError('required')) {
+          <mat-error>Username is required</mat-error>
+        }
+      </mat-form-field>
+
+      <!-- Password Field -->
+      <mat-form-field appearance="outline">
+        <mat-label>Password</mat-label>
+        <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'" placeholder="Enter password" autocomplete="current-password">
+        <mat-icon matPrefix>lock</mat-icon>
+        <button type="button" mat-icon-button matSuffix (click)="hidePassword = !hidePassword" [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hidePassword">
+          <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+        @if (loginForm.get('password')?.touched && loginForm.get('password')?.hasError('required')) {
+          <mat-error>Password is required</mat-error>
+        }
+      </mat-form-field>
+
+      <!-- Submit button -->
+      <button mat-flat-button type="submit" [disabled]="loginForm.invalid || isLoading" class="login-button">
+        @if (isLoading) {
+          <div class="spinner-container">
+            <mat-icon style="animation: spin 1.5s linear infinite;">sync</mat-icon>
+            <span>Signing in...</span>
+          </div>
+        } @else {
+          <span>Sign In</span>
+        }
+      </button>
+    </form>
+  </div>
+</div>
+
+<style>
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+</style>

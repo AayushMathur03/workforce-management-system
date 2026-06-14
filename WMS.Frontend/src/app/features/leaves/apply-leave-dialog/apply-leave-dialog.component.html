@@ -1,0 +1,65 @@
+<div class="wms-dialog">
+  <h2 mat-dialog-title>Apply for Leave</h2>
+  
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <mat-dialog-content class="mat-mdc-dialog-content">
+      <div style="display: flex; flex-direction: column; gap: 12px; width: 480px; max-width: 100%;">
+        
+        <!-- Leave Type Selection -->
+        <mat-form-field appearance="outline">
+          <mat-label>Leave Type</mat-label>
+          <mat-select formControlName="leaveType">
+            <mat-option value="Sick Leave">Sick Leave</mat-option>
+            <mat-option value="Casual Leave">Casual Leave</mat-option>
+            <mat-option value="Earned Leave">Earned Leave</mat-option>
+            <mat-option value="Maternity/Paternity Leave">Maternity/Paternity Leave</mat-option>
+          </mat-select>
+          @if (form.get('leaveType')?.touched && form.get('leaveType')?.hasError('required')) {
+            <mat-error>Leave type is required</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- Date Range Grid -->
+        <div class="wms-form-grid">
+          <!-- From Date -->
+          <mat-form-field appearance="outline">
+            <mat-label>From Date</mat-label>
+            <input matInput [matDatepicker]="fromPicker" formControlName="fromDate" placeholder="DD-MM-YYYY">
+            <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
+            <mat-datepicker #fromPicker></mat-datepicker>
+            @if (form.get('fromDate')?.touched && form.get('fromDate')?.hasError('required')) {
+              <mat-error>Start date is required</mat-error>
+            }
+          </mat-form-field>
+
+          <!-- To Date -->
+          <mat-form-field appearance="outline">
+            <mat-label>To Date</mat-label>
+            <input matInput [matDatepicker]="toPicker" formControlName="toDate" placeholder="DD-MM-YYYY">
+            <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
+            <mat-datepicker #toPicker></mat-datepicker>
+            @if (form.get('toDate')?.touched && form.get('toDate')?.hasError('required')) {
+              <mat-error>End date is required</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <!-- Reason -->
+        <mat-form-field appearance="outline">
+          <mat-label>Reason / Comments</mat-label>
+          <textarea matInput formControlName="reason" rows="4" placeholder="Brief explanation for leave request"></textarea>
+          @if (form.get('reason')?.touched && form.get('reason')?.hasError('required')) {
+            <mat-error>Reason is required</mat-error>
+          }
+        </mat-form-field>
+      </div>
+    </mat-dialog-content>
+    
+    <mat-dialog-actions class="mat-mdc-dialog-actions">
+      <button mat-button type="button" (click)="onCancel()">Cancel</button>
+      <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || isLoading" style="background-color: #3b82f6;">
+        Submit Request
+      </button>
+    </mat-dialog-actions>
+  </form>
+</div>

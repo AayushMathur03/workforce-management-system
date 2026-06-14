@@ -2,16 +2,15 @@ import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import { provideNativeDateAdapter } from '@angular/material/core';
 import { routes } from './app.routes';
-import { jwtInterceptor } from './shared/interceptors/jwt.interceptor';
+import { jwtInterceptor } from './core/interceptors/jwt.interceptor';
+import { errorInterceptor } from './core/interceptors/error.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
-    provideHttpClient(withInterceptors([jwtInterceptor])),
-    provideAnimationsAsync(),
-    provideNativeDateAdapter()
+    provideHttpClient(withInterceptors([jwtInterceptor, errorInterceptor])),
+    provideAnimationsAsync()
   ]
 };

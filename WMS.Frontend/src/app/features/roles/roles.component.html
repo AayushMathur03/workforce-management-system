@@ -1,0 +1,95 @@
+<div style="display: flex; flex-direction: column; gap: 16px;">
+  <!-- Header Title Row -->
+  <div class="table-header-container" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+    <div>
+      <h1 class="wms-font-title">Roles</h1>
+      <p class="wms-font-subtitle">Manage user access control roles and description of permissions</p>
+    </div>
+    
+    <button mat-flat-button style="background-color: #3b82f6; color: white;" (click)="openAddDialog()">
+      <mat-icon>add</mat-icon>
+      <span>Add Role</span>
+    </button>
+  </div>
+
+  <!-- Search Card -->
+  <div class="filter-card" style="background: white; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; gap: 16px;">
+    <div class="filter-search" style="flex: 1;">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" style="width: 100%;">
+        <mat-label>Search roles...</mat-label>
+        <input matInput [formControl]="searchControl" placeholder="Search by name or description...">
+        <mat-icon matPrefix>search</mat-icon>
+      </mat-form-field>
+    </div>
+  </div>
+
+  @if (!isLoading) {
+    <!-- Table -->
+    <div class="wms-table-container">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 70px;">#</th>
+            <th>ROLE NAME</th>
+            <th>DESCRIPTION</th>
+            <th style="text-align: right; width: 120px;">ACTIONS</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (role of pagedRoles; track role.roleId; let i = $index) {
+            <tr>
+              <td>
+                <div style="width: 32px; height: 32px; border-radius: 6px; background-color: #f0fdf4; color: #166534; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; border: 1px solid #bbf7d0;">
+                  {{ role.roleName.substring(0, 1).toUpperCase() }}
+                </div>
+              </td>
+              <td style="font-weight: 600;">
+                <span class="status-badge" [ngClass]="{'active': role.roleName === 'Admin', 'wfh': role.roleName === 'Manager', 'wfo': role.roleName === 'Employee'}">
+                  {{ role.roleName }}
+                </span>
+              </td>
+              <td style="color: #64748b;">{{ role.description || 'No description provided' }}</td>
+              <td style="text-align: right;">
+                <div style="display: flex; justify-content: flex-end; gap: 4px;">
+                  <button mat-icon-button (click)="openEditDialog(role)" matTooltip="Edit Role">
+                    <mat-icon style="color: #64748b;">edit</mat-icon>
+                  </button>
+                  <button mat-icon-button (click)="onDelete(role.roleId!)" matTooltip="Delete Role">
+                    <mat-icon style="color: #ef4444;">delete_outline</mat-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="4" style="text-align: center; color: #94a3b8; padding: 40px 0 !important;">
+                <mat-icon style="font-size: 40px; width: 40px; height: 40px;">admin_panel_settings</mat-icon>
+                <p style="margin: 8px 0 0 0; font-size: 13px;">No roles found</p>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <mat-paginator [length]="filteredRoles.length"
+                     [pageSize]="pageSize"
+                     [pageSizeOptions]="[5, 10, 25]"
+                     (page)="onPageChange($event)"
+                     style="border-top: 1px solid #e2e8f0;">
+      </mat-paginator>
+    </div>
+  } @else {
+    <!-- Spinner -->
+    <div style="display: flex; justify-content: center; align-items: center; height: 200px; flex-direction: column; gap: 12px; background: white; border-radius: 12px; border: 1px solid #e2e8f0;">
+      <mat-icon style="animation: spin 1.5s linear infinite; font-size: 36px; width: 36px; height: 36px; color: #3b82f6;">sync</mat-icon>
+      <span style="color: #64748b;">Loading roles...</span>
+    </div>
+  }
+</div>
+
+<style>
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+</style>

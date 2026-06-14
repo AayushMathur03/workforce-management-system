@@ -1,0 +1,147 @@
+<div style="display: flex; flex-direction: column; gap: 16px;">
+  <!-- Header Title Row -->
+  <div class="table-header-container" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+    <div>
+      <h1 class="wms-font-title">Projects</h1>
+      <p class="wms-font-subtitle">Manage project lifecycles, client associations, and resource assignments</p>
+    </div>
+    
+    @if (isAdmin || isManager) {
+      <button mat-flat-button style="background-color: #3b82f6; color: white;" (click)="openAddDialog()">
+        <mat-icon>add</mat-icon>
+        <span>Add Project</span>
+      </button>
+    }
+  </div>
+
+  <!-- Search & Filter Card -->
+  <div class="filter-card" style="background: white; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; flex-wrap: wrap; gap: 16px; align-items: center;">
+    <div class="filter-search" style="flex: 1; min-width: 200px;">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" style="width: 100%;">
+        <mat-label>Search projects...</mat-label>
+        <input matInput [formControl]="searchControl" placeholder="Search by name...">
+        <mat-icon matPrefix>search</mat-icon>
+      </mat-form-field>
+    </div>
+
+    <div style="width: 200px;">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" style="width: 100%;">
+        <mat-label>Client Filter</mat-label>
+        <mat-select [formControl]="clientFilterControl">
+          <mat-option value="all">All Clients</mat-option>
+          @for (c of clients; track c.clientId) {
+            <mat-option [value]="c.clientId">{{ c.clientName }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div style="width: 200px;">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" style="width: 100%;">
+        <mat-label>Status Filter</mat-label>
+        <mat-select [formControl]="statusFilterControl">
+          <mat-option value="all">All Statuses</mat-option>
+          <mat-option value="Active">Active Only</mat-option>
+          <mat-option value="Completed">Completed Only</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
+
+  @if (!isLoading) {
+    <!-- Project Cards Grid -->
+    <div class="project-grid">
+      @for (project of pagedProjects; track project.projectId) {
+        <div class="wms-card project-card" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 0; position: relative; overflow: hidden; border-top: 4px solid #3b82f6;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <span style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b;">
+                {{ project.clientName || 'No Client' }}
+              </span>
+              <h3 style="font-size: 18px; font-weight: 700; color: #0f172a; margin: 4px 0 0 0;">{{ project.projectName }}</h3>
+            </div>
+            <span class="status-badge" [ngClass]="project.status === 'Completed' ? 'active' : 'pending'">
+              {{ project.status }}
+            </span>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 6px; padding: 8px 0; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; margin-top: 4px;">
+            <div style="display: flex; justify-content: space-between; font-size: 13px;">
+              <span style="color: #64748b;">Start Date</span>
+              <span style="font-weight: 600; color: #334155;">{{ project.startDate | date:'dd-MM-yyyy' }}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 13px;">
+              <span style="color: #64748b;">End Date</span>
+              <span style="font-weight: 600; color: #334155;">{{ project.endDate ? (project.endDate | date:'dd-MM-yyyy') : 'Ongoing' }}</span>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+            <button mat-button color="primary" style="font-size: 12px; padding: 0 8px; min-width: 0;" (click)="viewAllocations(project)">
+              <mat-icon style="font-size: 18px; width: 18px; height: 18px; margin-right: 4px;">group</mat-icon>
+              <span>Allocations</span>
+            </button>
+
+            <div style="display: flex; gap: 4px;">
+              @if (isAdmin || isManager) {
+                @if (project.status !== 'Completed') {
+                  <button mat-icon-button color="primary" matTooltip="Complete Project" (click)="onComplete(project)">
+                    <mat-icon style="color: #22c55e;">done_all</mat-icon>
+                  </button>
+                  <button mat-icon-button color="accent" matTooltip="Assign Employee" (click)="openAssignDialog(project)">
+                    <mat-icon style="color: #3b82f6;">person_add</mat-icon>
+                  </button>
+                }
+                <button mat-icon-button matTooltip="Edit Project" (click)="openEditDialog(project)">
+                  <mat-icon style="color: #64748b;">edit</mat-icon>
+                </button>
+              }
+              @if (isAdmin) {
+                <button mat-icon-button color="warn" matTooltip="Delete Project" (click)="onDelete(project.projectId!)">
+                  <mat-icon style="color: #ef4444;">delete_outline</mat-icon>
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+      } @empty {
+        <div class="wms-card" style="grid-column: 1 / -1; text-align: center; color: #94a3b8; padding: 60px 0;">
+          <mat-icon style="font-size: 48px; width: 48px; height: 48px;">assignment_late</mat-icon>
+          <p style="margin: 12px 0 0 0; font-size: 15px; font-weight: 500;">No projects found matching the criteria</p>
+        </div>
+      }
+    </div>
+
+    <!-- Paginator -->
+    <div style="background: white; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 16px;">
+      <mat-paginator [length]="filteredProjects.length"
+                     [pageSize]="pageSize"
+                     [pageSizeOptions]="[6, 12, 24]"
+                     (page)="onPageChange($event)">
+      </mat-paginator>
+    </div>
+  } @else {
+    <!-- Spinner -->
+    <div style="display: flex; justify-content: center; align-items: center; height: 200px; flex-direction: column; gap: 12px; background: white; border-radius: 12px; border: 1px solid #e2e8f0;">
+      <mat-icon style="animation: spin 1.5s linear infinite; font-size: 36px; width: 36px; height: 36px; color: #3b82f6;">sync</mat-icon>
+      <span style="color: #64748b;">Loading projects...</span>
+    </div>
+  }
+</div>
+
+<style>
+  .project-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+  }
+  .project-card:hover {
+    transform: translateY(-2px);
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  }
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+</style>

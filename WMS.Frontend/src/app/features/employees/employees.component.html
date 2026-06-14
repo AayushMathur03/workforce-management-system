@@ -1,0 +1,132 @@
+<div style="display: flex; flex-direction: column; gap: 16px;">
+  <!-- Header Title & Add Button Row -->
+  <div class="table-header-container">
+    <div>
+      <h1 class="wms-font-title">Employee Management</h1>
+      <p class="wms-font-subtitle">Manage all employees in the system</p>
+    </div>
+    
+    <!-- Show Add button to Admin/Manager only -->
+    <button *appHasRole="['Admin']" mat-flat-button style="background-color: #3b82f6; color: white;" (click)="openAddDialog()">
+      <mat-icon>add</mat-icon>
+      <span>Add Employee</span>
+    </button>
+  </div>
+
+  <!-- Filters Row Card -->
+  <div class="filter-card">
+    <!-- Search Field -->
+    <div class="filter-search">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Search by name or email...</mat-label>
+        <input matInput [formControl]="searchControl" placeholder="Search by name or email...">
+        <mat-icon matPrefix>search</mat-icon>
+      </mat-form-field>
+    </div>
+
+    <!-- Department Filter -->
+    <div class="filter-select">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Department</mat-label>
+        <mat-select [formControl]="departmentFilter">
+          <mat-option [value]="''">All Departments</mat-option>
+          @for (dept of departments; track dept.departmentId) {
+            <mat-option [value]="dept.departmentName">{{ dept.departmentName }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <!-- Role Filter -->
+    <div class="filter-select">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Role</mat-label>
+        <mat-select [formControl]="roleFilter">
+          <mat-option [value]="''">All Roles</mat-option>
+          @for (role of roles; track role.roleId) {
+            <mat-option [value]="role.roleName">{{ role.roleName }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <!-- Employees List Table Container -->
+  @if (!isLoading) {
+    <div class="wms-table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>CODE</th>
+            <th>NAME</th>
+            <th>EMAIL</th>
+            <th>PHONE</th>
+            <th>DEPARTMENT</th>
+            <th>ROLE</th>
+            <th>STATUS</th>
+            <th *appHasRole="['Admin', 'Manager']" style="text-align: right;">ACTIONS</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (emp of pagedEmployees; track emp.employeeId; let i = $index) {
+            <tr>
+              <td>{{ (pageIndex * pageSize) + i + 1 }}</td>
+              <td>
+                <span class="code-badge">EMP{{ emp.employeeId.toString().padStart(4, '0') }}</span>
+              </td>
+              <td style="font-weight: 500;">{{ emp.fullName }}</td>
+              <td>{{ emp.email }}</td>
+              <td>{{ emp.phoneNumber }}</td>
+              <td>{{ emp.departmentName || 'None' }}</td>
+              <td>{{ emp.roleName || 'None' }}</td>
+              <td>
+                <span class="status-badge" [ngClass]="emp.status.toLowerCase()">{{ emp.status }}</span>
+              </td>
+              <td *appHasRole="['Admin', 'Manager']" style="text-align: right;">
+                <div style="display: flex; justify-content: flex-end; gap: 4px;">
+                  <button mat-icon-button (click)="openEditDialog(emp)" matTooltip="Edit Employee">
+                    <mat-icon style="color: #64748b;">edit</mat-icon>
+                  </button>
+                  <button *appHasRole="['Admin']" mat-icon-button (click)="toggleEmployeeStatus(emp)" [matTooltip]="emp.status === 'Active' ? 'Deactivate Employee' : 'Activate Employee'">
+                    <mat-icon [style.color]="emp.status === 'Active' ? '#ef4444' : '#22c55e'">
+                      {{ emp.status === 'Active' ? 'person_off' : 'person' }}
+                    </mat-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="9" style="text-align: center; color: #94a3b8; padding: 40px 0 !important;">
+                <mat-icon style="font-size: 48px; width: 48px; height: 48px;">people_outline</mat-icon>
+                <p style="margin: 8px 0 0 0; font-size: 14px;">No employees found matching the filters</p>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      
+      <!-- Table Pagination controls -->
+      <mat-paginator [length]="filteredEmployees.length"
+                     [pageSize]="pageSize"
+                     [pageSizeOptions]="[5, 10, 25, 50]"
+                     (page)="onPageChange($event)"
+                     style="border-top: 1px solid #e2e8f0;">
+      </mat-paginator>
+    </div>
+  } @else {
+    <!-- Loading Spinner -->
+    <div style="display: flex; justify-content: center; align-items: center; height: 250px; flex-direction: column; gap: 12px; background: white; border-radius: 12px; border: 1px solid #e2e8f0;">
+      <mat-icon style="animation: spin 1.5s linear infinite; font-size: 36px; width: 36px; height: 36px; color: #3b82f6;">sync</mat-icon>
+      <span style="color: #64748b;">Loading employee database...</span>
+    </div>
+  }
+</div>
+
+<style>
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+</style>

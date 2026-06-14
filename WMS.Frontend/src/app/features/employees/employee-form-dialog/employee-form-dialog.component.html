@@ -1,0 +1,153 @@
+<div class="wms-dialog">
+  <h2 mat-dialog-title>{{ isEditMode ? 'Edit Employee' : 'Add New Employee' }}</h2>
+  
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <mat-dialog-content class="mat-mdc-dialog-content">
+      <div class="form-container">
+        
+        <!-- Personal Details Grid -->
+        <div class="wms-form-grid">
+          <!-- First Name -->
+          <mat-form-field appearance="outline">
+            <mat-label>First Name</mat-label>
+            <input matInput formControlName="firstName" placeholder="First Name">
+            @if (form.get('firstName')?.touched && form.get('firstName')?.hasError('required')) {
+              <mat-error>First name is required</mat-error>
+            }
+          </mat-form-field>
+
+          <!-- Last Name -->
+          <mat-form-field appearance="outline">
+            <mat-label>Last Name</mat-label>
+            <input matInput formControlName="lastName" placeholder="Last Name">
+            @if (form.get('lastName')?.touched && form.get('lastName')?.hasError('required')) {
+              <mat-error>Last name is required</mat-error>
+            }
+          </mat-form-field>
+
+          <!-- Email -->
+          <mat-form-field appearance="outline">
+            <mat-label>Email Address</mat-label>
+            <input matInput formControlName="email" type="email" placeholder="email@wms.com">
+            @if (form.get('email')?.touched) {
+              @if (form.get('email')?.hasError('required')) { <mat-error>Email is required</mat-error> }
+              @if (form.get('email')?.hasError('email')) { <mat-error>Invalid email format</mat-error> }
+            }
+          </mat-form-field>
+
+          <!-- Phone Number -->
+          <mat-form-field appearance="outline">
+            <mat-label>Phone Number</mat-label>
+            <input matInput formControlName="phoneNumber" placeholder="9999888877">
+            @if (form.get('phoneNumber')?.touched && form.get('phoneNumber')?.hasError('required')) {
+              <mat-error>Phone number is required</mat-error>
+            }
+          </mat-form-field>
+
+          <!-- Gender -->
+          <mat-form-field appearance="outline">
+            <mat-label>Gender</mat-label>
+            <mat-select formControlName="gender">
+              <mat-option value="M">Male</mat-option>
+              <mat-option value="F">Female</mat-option>
+              <mat-option value="O">Other</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Date of Birth -->
+          <mat-form-field appearance="outline">
+            <mat-label>Date of Birth</mat-label>
+            <input matInput [matDatepicker]="dobPicker" formControlName="dob" placeholder="DD-MM-YYYY">
+            <mat-datepicker-toggle matSuffix [for]="dobPicker"></mat-datepicker-toggle>
+            <mat-datepicker #dobPicker></mat-datepicker>
+            @if (form.get('dob')?.touched && form.get('dob')?.hasError('required')) {
+              <mat-error>Date of birth is required</mat-error>
+            }
+          </mat-form-field>
+
+          <!-- Date of Joining -->
+          <mat-form-field appearance="outline">
+            <mat-label>Date of Joining</mat-label>
+            <input matInput [matDatepicker]="dojPicker" formControlName="doj" placeholder="DD-MM-YYYY">
+            <mat-datepicker-toggle matSuffix [for]="dojPicker"></mat-datepicker-toggle>
+            <mat-datepicker #dojPicker></mat-datepicker>
+            @if (form.get('doj')?.touched && form.get('doj')?.hasError('required')) {
+              <mat-error>Date of joining is required</mat-error>
+            }
+          </mat-form-field>
+
+          <!-- Department Selection -->
+          <mat-form-field appearance="outline">
+            <mat-label>Department</mat-label>
+            <mat-select formControlName="departmentId">
+              <mat-option [value]="null">None</mat-option>
+              @for (dept of departments; track dept.departmentId) {
+                <mat-option [value]="dept.departmentId">{{ dept.departmentName }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Role Selection -->
+          <mat-form-field appearance="outline">
+            <mat-label>Role</mat-label>
+            <mat-select formControlName="roleId">
+              <mat-option [value]="null">None</mat-option>
+              @for (role of roles; track role.roleId) {
+                <mat-option [value]="role.roleId">{{ role.roleName }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Status toggle (Only visible in Edit Mode) -->
+          @if (isEditMode) {
+            <mat-form-field appearance="outline">
+              <mat-label>Status</mat-label>
+              <mat-select formControlName="status">
+                <mat-option value="Active">Active</mat-option>
+                <mat-option value="Inactive">Inactive</mat-option>
+              </mat-select>
+            </mat-form-field>
+          }
+        </div>
+
+        <!-- Credentials section (Only visible in Create Mode) -->
+        @if (!isEditMode) {
+          <div style="margin-top: 16px; border-top: 1px dashed #e2e8f0; padding-top: 16px;">
+            <h3 style="font-size: 14px; font-weight: 700; color: #475569; margin: 0 0 12px 0;">User Credentials</h3>
+            
+            <div class="wms-form-grid">
+              <!-- Username -->
+              <mat-form-field appearance="outline">
+                <mat-label>Username</mat-label>
+                <input matInput formControlName="username" placeholder="Username">
+                @if (form.get('username')?.touched && form.get('username')?.hasError('required')) {
+                  <mat-error>Username is required</mat-error>
+                }
+              </mat-form-field>
+
+              <!-- Password -->
+              <mat-form-field appearance="outline">
+                <mat-label>Password</mat-label>
+                <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'" placeholder="Password">
+                <button type="button" mat-icon-button matSuffix (click)="hidePassword = !hidePassword" tabindex="-1">
+                  <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                </button>
+                @if (form.get('password')?.touched) {
+                  @if (form.get('password')?.hasError('required')) { <mat-error>Password is required</mat-error> }
+                  @if (form.get('password')?.hasError('minlength')) { <mat-error>Password must be at least 6 characters</mat-error> }
+                }
+              </mat-form-field>
+            </div>
+          </div>
+        }
+      </div>
+    </mat-dialog-content>
+    
+    <mat-dialog-actions class="mat-mdc-dialog-actions">
+      <button mat-button type="button" (click)="onCancel()">Cancel</button>
+      <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || isLoading" style="background-color: #3b82f6;">
+        Save Employee
+      </button>
+    </mat-dialog-actions>
+  </form>
+</div>

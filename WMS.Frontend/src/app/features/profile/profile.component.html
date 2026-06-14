@@ -1,0 +1,175 @@
+<div style="display: flex; flex-direction: column; gap: 24px;">
+  <!-- Header Title -->
+  <div>
+    <h1 class="wms-font-title">My Profile</h1>
+    <p class="wms-font-subtitle">View your corporate details and manage personal contact information</p>
+  </div>
+
+  @if (!isLoading && profile) {
+    <!-- Main Profile Panels Row -->
+    <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 24px;">
+      
+      <!-- Left side: Personal Details Edit & General Info -->
+      <div style="display: flex; flex-direction: column; gap: 24px;">
+        
+        <!-- Personal Contact Info Form -->
+        <div class="wms-card" style="margin-bottom: 0;">
+          <h2 style="font-size: 15px; font-weight: 700; color: #1e293b; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
+            <mat-icon style="color: #3b82f6;">contact_phone</mat-icon>
+            <span>Personal Contact Details</span>
+          </h2>
+          
+          <form [formGroup]="profileForm" (ngSubmit)="onUpdateProfile()" class="wms-form-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>First Name</mat-label>
+              <input matInput formControlName="firstName">
+              @if (profileForm.get('firstName')?.hasError('required')) { <mat-error>First name is required</mat-error> }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Last Name</mat-label>
+              <input matInput formControlName="lastName">
+              @if (profileForm.get('lastName')?.hasError('required')) { <mat-error>Last name is required</mat-error> }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Phone Number</mat-label>
+              <input matInput formControlName="phoneNumber">
+              @if (profileForm.get('phoneNumber')?.hasError('required')) { <mat-error>Phone number is required</mat-error> }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Gender</mat-label>
+              <mat-select formControlName="gender">
+                <mat-option value="M">Male</mat-option>
+                <mat-option value="F">Female</mat-option>
+                <mat-option value="O">Other</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <div style="grid-column: 1 / -1; display: flex; justify-content: flex-end; margin-top: 8px;">
+              <button mat-flat-button type="submit" [disabled]="profileForm.invalid || isSavingProfile" style="background-color: #3b82f6; color: white;">
+                Save Changes
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Corporate Profile Details Display -->
+        <div class="wms-card" style="margin-bottom: 0;">
+          <h2 style="font-size: 15px; font-weight: 700; color: #1e293b; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
+            <mat-icon style="color: #475569;">badge</mat-icon>
+            <span>Corporate Details</span>
+          </h2>
+
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+            <!-- Username -->
+            <div style="display: flex; flex-direction: column;">
+              <span style="font-size: 11px; text-transform: uppercase; color: #94a3b8; font-weight: 700;">Username</span>
+              <span style="font-size: 14px; font-weight: 600; color: #334155;">{{ profile.username }}</span>
+            </div>
+
+            <!-- Email -->
+            <div style="display: flex; flex-direction: column;">
+              <span style="font-size: 11px; text-transform: uppercase; color: #94a3b8; font-weight: 700;">Email Address</span>
+              <span style="font-size: 14px; font-weight: 600; color: #334155;">{{ profile.email }}</span>
+            </div>
+
+            <!-- Department -->
+            <div style="display: flex; flex-direction: column;">
+              <span style="font-size: 11px; text-transform: uppercase; color: #94a3b8; font-weight: 700;">Department</span>
+              <span style="font-size: 14px; font-weight: 600; color: #334155;">{{ profile.departmentName || 'None' }}</span>
+            </div>
+
+            <!-- Role -->
+            <div style="display: flex; flex-direction: column;">
+              <span style="font-size: 11px; text-transform: uppercase; color: #94a3b8; font-weight: 700;">Assigned Role</span>
+              <span style="font-size: 14px; font-weight: 600; color: #334155;">{{ profile.roleName || 'None' }}</span>
+            </div>
+
+            <!-- DOJ -->
+            <div style="display: flex; flex-direction: column;">
+              <span style="font-size: 11px; text-transform: uppercase; color: #94a3b8; font-weight: 700;">Date of Joining</span>
+              <span style="font-size: 14px; font-weight: 600; color: #334155;">{{ profile.doj | date:'dd-MM-yyyy' }}</span>
+            </div>
+
+            <!-- DOB -->
+            <div style="display: flex; flex-direction: column;">
+              <span style="font-size: 11px; text-transform: uppercase; color: #94a3b8; font-weight: 700;">Date of Birth</span>
+              <span style="font-size: 14px; font-weight: 600; color: #334155;">{{ profile.dob | date:'dd-MM-yyyy' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right side: Change Password card -->
+      <div>
+        <div class="wms-card" style="height: 100%;">
+          <h2 style="font-size: 15px; font-weight: 700; color: #1e293b; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
+            <mat-icon style="color: #ef4444;">vpn_key</mat-icon>
+            <span>Change Password</span>
+          </h2>
+          <p style="font-size: 12px; color: #64748b; margin-bottom: 20px;">
+            It is recommended to use a strong password with letters, numbers, and symbols.
+          </p>
+
+          <form [formGroup]="passwordForm" (ngSubmit)="onChangePassword()" style="display: flex; flex-direction: column; gap: 12px;">
+            <!-- Current Password -->
+            <mat-form-field appearance="outline">
+              <mat-label>Current Password</mat-label>
+              <input matInput formControlName="currentPassword" [type]="hideCurrent ? 'password' : 'text'">
+              <button type="button" mat-icon-button matSuffix (click)="hideCurrent = !hideCurrent" tabindex="-1">
+                <mat-icon>{{ hideCurrent ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+              @if (passwordForm.get('currentPassword')?.hasError('required')) { <mat-error>Current password is required</mat-error> }
+            </mat-form-field>
+
+            <!-- New Password -->
+            <mat-form-field appearance="outline">
+              <mat-label>New Password</mat-label>
+              <input matInput formControlName="newPassword" [type]="hideNew ? 'password' : 'text'">
+              <button type="button" mat-icon-button matSuffix (click)="hideNew = !hideNew" tabindex="-1">
+                <mat-icon>{{ hideNew ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+              @if (passwordForm.get('newPassword')?.touched) {
+                @if (passwordForm.get('newPassword')?.hasError('required')) { <mat-error>New password is required</mat-error> }
+                @if (passwordForm.get('newPassword')?.hasError('minlength')) { <mat-error>Password must be at least 6 characters</mat-error> }
+              }
+            </mat-form-field>
+
+            <!-- Confirm New Password -->
+            <mat-form-field appearance="outline">
+              <mat-label>Confirm New Password</mat-label>
+              <input matInput formControlName="confirmPassword" [type]="hideConfirm ? 'password' : 'text'">
+              <button type="button" mat-icon-button matSuffix (click)="hideConfirm = !hideConfirm" tabindex="-1">
+                <mat-icon>{{ hideConfirm ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+              @if (passwordForm.get('confirmPassword')?.touched) {
+                @if (passwordForm.get('confirmPassword')?.hasError('required')) { <mat-error>Confirm password is required</mat-error> }
+                @if (passwordForm.hasError('mismatch')) { <mat-error>Passwords do not match</mat-error> }
+              }
+            </mat-form-field>
+
+            <button mat-flat-button type="submit" [disabled]="passwordForm.invalid || isChangingPassword" style="background-color: #ef4444; color: white; margin-top: 8px; height: 44px; font-weight: 600;">
+              Update Password
+            </button>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  } @else {
+    <!-- Loading State -->
+    <div style="display: flex; justify-content: center; align-items: center; height: 300px; flex-direction: column; gap: 12px; background: white; border-radius: 12px; border: 1px solid #e2e8f0;">
+      <mat-icon style="animation: spin 1.5s linear infinite; font-size: 36px; width: 36px; height: 36px; color: #3b82f6;">sync</mat-icon>
+      <span style="color: #64748b;">Loading user profile details...</span>
+    </div>
+  }
+</div>
+
+<style>
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+</style>

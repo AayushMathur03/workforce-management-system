@@ -1,0 +1,174 @@
+.layout-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidenav {
+  width: 250px;
+  background-color: #0f172a; // Deep slate dark blue
+  color: #94a3b8;
+  border-right: none;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s ease;
+
+  &.collapsed {
+    width: 70px;
+
+    .sidebar-header h1,
+    .user-info,
+    .nav-label {
+      display: none;
+    }
+    .nav-item {
+      justify-content: center;
+      padding: 12px 0;
+    }
+    .user-avatar-container {
+      padding: 16px 0;
+      justify-content: center;
+    }
+  }
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 16px;
+  border-bottom: 1px solid #1e293b;
+
+  mat-icon {
+    color: #3b82f6; // Azure blue logo accent
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #f8fafc;
+    letter-spacing: 0.5px;
+  }
+}
+
+.user-avatar-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 16px;
+  border-bottom: 1px solid #1e293b;
+  background-color: #1e293b;
+
+  .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: #3b82f6;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px;
+    border: 2px solid #64748b;
+  }
+
+  .user-info {
+    display: flex;
+    flex-direction: column;
+
+    .name {
+      color: #f8fafc;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .role-badge {
+      font-size: 10px;
+      font-weight: 700;
+      color: #3b82f6;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  }
+}
+
+.nav-list {
+  padding: 12px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: #94a3b8;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  &:hover {
+    background-color: #1e293b;
+    color: #f8fafc;
+  }
+
+  &.active {
+    background-color: #3b82f6;
+    color: #ffffff;
+
+    mat-icon {
+      color: #ffffff;
+    }
+  }
+}
+
+.toolbar {
+  background-color: #ffffff;
+  color: #0f172a;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05);
+  padding: 0 16px;
+}
+
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.content-container {
+  background-color: #f8fafc;
+  padding: 24px;
+  height: calc(100vh - 64px);
+  overflow-y: auto;
+}
+
+.version-footer {
+  padding: 12px;
+  text-align: center;
+  font-size: 10px;
+  color: #475569;
+  border-top: 1px solid #1e293b;
+}

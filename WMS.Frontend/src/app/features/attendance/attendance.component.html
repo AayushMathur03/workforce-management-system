@@ -1,0 +1,244 @@
+<div style="display: flex; flex-direction: column; gap: 16px;">
+  <!-- Page Header -->
+  <div style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: flex-start;">
+    <div>
+      <h1 class="wms-font-title">Attendance Dashboard</h1>
+      <p class="wms-font-subtitle">Track your daily clock-ins, shift hours, and monthly timesheets</p>
+    </div>
+    
+    <!-- Admin & Manager View: Employee Selector -->
+    @if (isAdminOrManager && employees.length > 0) {
+      <mat-form-field appearance="outline" style="width: 250px;" subscriptSizing="dynamic">
+        <mat-label>View Attendance For</mat-label>
+        <mat-select [formControl]="employeeSelect">
+          @for (emp of employees; track emp.employeeId) {
+            <mat-option [value]="emp.employeeId">{{ emp.fullName }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    }
+  </div>
+
+  <!-- Clock In/Out & Live Status Panel -->
+  <div class="attendance-dashboard-grid">
+    <!-- Mark Attendance Card -->
+    <div class="wms-card" style="margin-bottom: 0;">
+      <h2 style="font-size: 15px; font-weight: 700; color: #1e293b; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
+        <mat-icon style="color: #22c55e;">fingerprint</mat-icon>
+        <span>Mark Attendance</span>
+      </h2>
+      <p style="font-size: 13px; color: #64748b; margin-bottom: 20px;">
+        Select your work location mode and register your shift timings.
+      </p>
+
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        <!-- Work Mode Selection -->
+        <mat-form-field appearance="outline">
+          <mat-label>Work Mode</mat-label>
+          <mat-select [formControl]="workModeControl" [disabled]="todayRecord !== null && !todayRecord.checkOut">
+            <mat-option value="Work From Office">Work From Office</mat-option>
+            <mat-option value="Work From Home">Work From Home</mat-option>
+            <mat-option value="Client Location">Client Location</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <!-- Action Buttons -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <!-- Check In -->
+          <button mat-flat-button type="button" 
+                  [disabled]="isLoading || (todayRecord !== null)"
+                  (click)="onCheckIn()"
+                  style="height: 48px; font-weight: 600; font-size: 15px; border-radius: 8px; background-color: #15803d; color: white;">
+            <mat-icon>login</mat-icon>
+            <span style="margin-left: 8px;">Check In</span>
+          </button>
+
+          <!-- Check Out -->
+          <button mat-flat-button type="button" 
+                  [disabled]="isLoading || (todayRecord === null) || !!todayRecord.checkOut"
+                  (click)="onCheckOut()"
+                  style="height: 48px; font-weight: 600; font-size: 15px; border-radius: 8px; background-color: #cbd5e1; color: #475569;">
+            <mat-icon>logout</mat-icon>
+            <span style="margin-left: 8px;">Check Out</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Status Card -->
+    <div class="wms-card" style="margin-bottom: 0; display: flex; flex-direction: column;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h2 style="font-size: 15px; font-weight: 700; color: #1e293b; margin: 0;">Live Status</h2>
+        <span class="status-badge" [ngClass]="currentStatusClass">
+          {{ currentStatusText }}
+        </span>
+      </div>
+      <p style="font-size: 13px; color: #64748b; margin-bottom: 20px;">Real-time status tracking for current date</p>
+
+      <div class="live-status-container" style="flex: 1;">
+        <!-- Checkin Time -->
+        <div class="status-box">
+          <span class="box-label">Check-in Time</span>
+          <span class="box-value">{{ (todayRecord?.checkIn | date:'hh:mm a') || '-- : --' }}</span>
+        </div>
+
+        <!-- Checkout Time -->
+        <div class="status-box">
+          <span class="box-label">Check-out Time</span>
+          <span class="box-value">{{ (todayRecord?.checkOut | date:'hh:mm a') || '-- : --' }}</span>
+        </div>
+
+        <!-- Working Hours -->
+        <div class="status-box">
+          <span class="box-label">Working Hours</span>
+          <span class="box-value" style="color: #3b82f6;">
+            {{ todayRecord?.totalHours !== undefined ? (todayRecord?.totalHours + ' hrs') : '-- : --' }}
+          </span>
+        </div>
+
+        <!-- Current Work Mode -->
+        <div class="status-box">
+          <span class="box-label">Work Mode</span>
+          <span class="box-value">{{ todayRecord?.workMode || '--' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Timesheet & Reports Panel -->
+  <div class="wms-card">
+    <div class="filter-bar">
+      <h2 style="font-size: 15px; font-weight: 700; color: #1e293b; margin: 0;">Timesheet & Reports</h2>
+      
+      <div class="filter-controls">
+        <!-- Search -->
+        <mat-form-field appearance="outline" style="width: 200px;" subscriptSizing="dynamic">
+          <mat-label>Search records...</mat-label>
+          <input matInput [formControl]="searchControl" placeholder="Search mode/status">
+          <mat-icon matPrefix>search</mat-icon>
+        </mat-form-field>
+
+        <!-- Month Dropdown -->
+        <mat-form-field appearance="outline" style="width: 130px;" subscriptSizing="dynamic">
+          <mat-label>Month</mat-label>
+          <mat-select [formControl]="monthControl">
+            @for (m of months; track m.value) {
+              <mat-option [value]="m.value">{{ m.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <!-- Year Dropdown -->
+        <mat-form-field appearance="outline" style="width: 100px;" subscriptSizing="dynamic">
+          <mat-label>Year</mat-label>
+          <mat-select [formControl]="yearControl">
+            @for (y of years; track y) {
+              <mat-option [value]="y">{{ y }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <!-- Refresh button -->
+        <button mat-icon-button type="button" (click)="loadMonthlyAttendance()" matTooltip="Refresh Timesheet">
+          <mat-icon>refresh</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Timesheet Mini Statistics Row -->
+    <div class="timesheet-stats">
+      <!-- Present Days -->
+      <div class="stat-card stat-present">
+        <div class="stat-icon">
+          <mat-icon>event_available</mat-icon>
+        </div>
+        <div class="stat-info">
+          <span class="value">{{ presentDaysCount }}</span>
+          <span class="label">Present Days</span>
+        </div>
+      </div>
+
+      <!-- Hours Worked -->
+      <div class="stat-card stat-hours">
+        <div class="stat-icon">
+          <mat-icon>hourglass_empty</mat-icon>
+        </div>
+        <div class="stat-info">
+          <span class="value">{{ totalHoursWorked | number:'1.1-1' }}h</span>
+          <span class="label">Total Hours Worked</span>
+        </div>
+      </div>
+
+      <!-- Attendance Rate -->
+      <div class="stat-card stat-rate">
+        <div class="stat-icon">
+          <mat-icon>trending_up</mat-icon>
+        </div>
+        <div class="stat-info">
+          <span class="value">{{ attendanceRate | number:'1.0-0' }}%</span>
+          <span class="label">Attendance Rate</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Attendance Timesheet Table -->
+    @if (!isTableLoading) {
+      <div class="wms-table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>DATE</th>
+              <th>CHECK-IN</th>
+              <th>CHECK-OUT</th>
+              <th>HOURS</th>
+              <th>WORK MODE</th>
+              <th>STATUS</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (att of pagedAttendance; track att.attendanceId) {
+              <tr>
+                <td style="font-weight: 500;">{{ att.attendanceDate | date:'dd-MM-yyyy' }}</td>
+                <td>{{ att.checkIn | date:'hh:mm a' }}</td>
+                <td>{{ (att.checkOut | date:'hh:mm a') || '--' }}</td>
+                <td>
+                  <strong style="color: #3b82f6;">
+                    {{ att.totalHours !== undefined ? (att.totalHours | number:'1.1-1') + ' hrs' : '--' }}
+                  </strong>
+                </td>
+                <td>
+                  <span class="status-badge" [ngClass]="att.workMode === 'Work From Office' ? 'wfo' : 'wfh'">
+                    {{ att.workMode }}
+                  </span>
+                </td>
+                <td>
+                  <span class="status-badge present">Present</span>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" style="text-align: center; color: #94a3b8; padding: 40px 0 !important;">
+                  <mat-icon style="font-size: 40px; width: 40px; height: 40px;">assignment_late</mat-icon>
+                  <p style="margin: 8px 0 0 0; font-size: 13px;">No attendance logs for this month</p>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        <mat-paginator [length]="filteredAttendance.length"
+                       [pageSize]="pageSize"
+                       [pageSizeOptions]="[5, 10, 25]"
+                       (page)="onPageChange($event)"
+                       style="border-top: 1px solid #e2e8f0;">
+        </mat-paginator>
+      </div>
+    } @else {
+      <!-- Spinner -->
+      <div style="display: flex; justify-content: center; align-items: center; height: 180px; flex-direction: column; gap: 12px;">
+        <mat-icon style="animation: spin 1.5s linear infinite; font-size: 32px; width: 32px; height: 32px; color: #3b82f6;">sync</mat-icon>
+        <span style="color: #64748b; font-size: 13px;">Loading timesheet logs...</span>
+      </div>
+    }
+  </div>
+</div>

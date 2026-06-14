@@ -1,0 +1,119 @@
+<div style="display: flex; flex-direction: column; gap: 16px;">
+  <!-- Header Title Row -->
+  <div class="table-header-container" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+    <div>
+      <h1 class="wms-font-title">Project Allocations</h1>
+      <p class="wms-font-subtitle">
+        {{ isEmployee ? 'Track your active project engagements' : 'Manage project allocations and staffing schedules' }}
+      </p>
+    </div>
+    
+    @if (isAdmin || isManager) {
+      <button mat-flat-button style="background-color: #3b82f6; color: white;" (click)="openAssignDialog()">
+        <mat-icon>add</mat-icon>
+        <span>New Assignment</span>
+      </button>
+    }
+  </div>
+
+  <!-- Search Card -->
+  <div class="filter-card" style="background: white; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+    <div class="filter-search" style="flex: 1; min-width: 250px;">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" style="width: 100%;">
+        <mat-label>Search allocations...</mat-label>
+        <input matInput [formControl]="searchControl" placeholder="Search by project or employee name...">
+        <mat-icon matPrefix>search</mat-icon>
+      </mat-form-field>
+    </div>
+
+    <div style="width: 200px;">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" style="width: 100%;">
+        <mat-label>Status Filter</mat-label>
+        <mat-select [formControl]="statusFilterControl">
+          <mat-option value="all">All Allocations</mat-option>
+          <mat-option value="active">Active Only</mat-option>
+          <mat-option value="inactive">Inactive Only</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
+
+  @if (!isLoading) {
+    <!-- Table -->
+    <div class="wms-table-container">
+      <table>
+        <thead>
+          <tr>
+            @if (!isEmployee) {
+              <th>EMPLOYEE</th>
+            }
+            <th>PROJECT NAME</th>
+            <th>ASSIGNED ON</th>
+            <th>STATUS</th>
+            <th>ASSIGNED BY</th>
+            @if (isAdmin || isManager) {
+              <th style="text-align: right; width: 140px;">ACTIONS</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (alloc of pagedAllocations; track alloc.allocationId) {
+            <tr>
+              @if (!isEmployee) {
+                <td style="font-weight: 600; color: #1e293b;">
+                  {{ alloc.employeeName }}
+                </td>
+              }
+              <td style="font-weight: 600; color: #3b82f6;">{{ alloc.projectName }}</td>
+              <td>{{ alloc.assignedOn | date:'dd-MM-yyyy' }}</td>
+              <td>
+                <span class="status-badge" [ngClass]="alloc.status ? 'active' : 'inactive'">
+                  {{ alloc.status ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+              <td style="color: #64748b; font-size: 13px;">{{ alloc.createdBy }}</td>
+              @if (isAdmin || isManager) {
+                <td style="text-align: right;">
+                  @if (alloc.status) {
+                    <button mat-flat-button color="warn" style="font-size: 11px; padding: 0 10px; line-height: 28px; background-color: #ef4444;" (click)="onDeactivate(alloc)">
+                      Deactivate
+                    </button>
+                  } @else {
+                    <span style="color: #94a3b8; font-size: 12px; font-style: italic;">Ended</span>
+                  }
+                </td>
+              }
+            </tr>
+          } @empty {
+            <tr>
+              <td [attr.colspan]="isEmployee ? 5 : 6" style="text-align: center; color: #94a3b8; padding: 40px 0 !important;">
+                <mat-icon style="font-size: 40px; width: 40px; height: 40px;">assignment_ind</mat-icon>
+                <p style="margin: 8px 0 0 0; font-size: 13px;">No allocations found</p>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <mat-paginator [length]="filteredAllocations.length"
+                     [pageSize]="pageSize"
+                     [pageSizeOptions]="[5, 10, 25]"
+                     (page)="onPageChange($event)"
+                     style="border-top: 1px solid #e2e8f0;">
+      </mat-paginator>
+    </div>
+  } @else {
+    <!-- Spinner -->
+    <div style="display: flex; justify-content: center; align-items: center; height: 200px; flex-direction: column; gap: 12px; background: white; border-radius: 12px; border: 1px solid #e2e8f0;">
+      <mat-icon style="animation: spin 1.5s linear infinite; font-size: 36px; width: 36px; height: 36px; color: #3b82f6;">sync</mat-icon>
+      <span style="color: #64748b;">Loading allocations...</span>
+    </div>
+  }
+</div>
+
+<style>
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+</style>

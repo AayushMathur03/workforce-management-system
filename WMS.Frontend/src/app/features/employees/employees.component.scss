@@ -1,0 +1,43 @@
+.filter-card {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  padding: 16px;
+  margin-bottom: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+
+  .filter-search {
+    flex: 2;
+    min-width: 260px;
+  }
+
+  .filter-select {
+    flex: 1;
+    min-width: 180px;
+  }
+
+  mat-form-field {
+    width: 100%;
+  }
+}
+
+.table-header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.code-badge {
+  font-family: monospace;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background-color: #f1f5f9;
+  color: #3b82f6;
+  font-size: 12px;
+  border: 1px solid #e2e8f0;
+}

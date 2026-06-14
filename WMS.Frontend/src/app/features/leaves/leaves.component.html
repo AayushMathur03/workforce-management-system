@@ -1,0 +1,140 @@
+<div style="display: flex; flex-direction: column; gap: 24px;">
+  <!-- Header Title Row -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+    <div>
+      <h1 class="wms-font-title">Leave Management</h1>
+      <p class="wms-font-subtitle">Apply for leaves and track approval status</p>
+    </div>
+    
+    <button mat-flat-button style="background-color: #3b82f6; color: white;" (click)="openApplyDialog()">
+      <mat-icon>add</mat-icon>
+      <span>Apply for Leave</span>
+    </button>
+  </div>
+
+  <!-- Loading Indicator -->
+  @if (isLoading) {
+    <div style="display: flex; justify-content: center; align-items: center; height: 200px; flex-direction: column; gap: 12px; background: white; border-radius: 12px; border: 1px solid #e2e8f0;">
+      <mat-icon style="animation: spin 1.5s linear infinite; font-size: 36px; width: 36px; height: 36px; color: #3b82f6;">sync</mat-icon>
+      <span style="color: #64748b;">Loading leave records...</span>
+    </div>
+  } @else {
+    <!-- Manager/Admin section: Pending Reviews -->
+    <div *appHasRole="['Admin', 'Manager']" class="wms-card">
+      <h2 style="font-size: 15px; font-weight: 700; color: #1e293b; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
+        <mat-icon style="color: #f59e0b;">rate_review</mat-icon>
+        <span>Pending Team Leave Requests</span>
+      </h2>
+
+      <div class="wms-table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>EMPLOYEE</th>
+              <th>LEAVE TYPE</th>
+              <th>DATE RANGE</th>
+              <th>REASON</th>
+              <th>APPLIED ON</th>
+              <th style="text-align: right;">ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (leave of pendingLeaves; track leave.leaveId) {
+              <tr>
+                <td style="font-weight: 600;">{{ leave.employeeName }}</td>
+                <td>
+                  <span class="status-badge wfo" style="font-size: 11px;">{{ leave.leaveType }}</span>
+                </td>
+                <td>{{ leave.fromDate | date:'dd-MM-yyyy' }} to {{ leave.toDate | date:'dd-MM-yyyy' }}</td>
+                <td>{{ leave.reason || 'None' }}</td>
+                <td>{{ leave.appliedOn | date:'dd-MM-yyyy' }}</td>
+                <td style="text-align: right;">
+                  <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                    <button mat-flat-button color="primary" 
+                            (click)="onReviewLeave(leave.leaveId, 'Approved')"
+                            style="background-color: #22c55e; color: white; min-width: auto; padding: 0 12px; height: 32px; font-size: 12px; font-weight: 600;">
+                      <mat-icon style="font-size: 16px; width: 16px; height: 16px; margin-right: 4px;">check</mat-icon>
+                      <span>Approve</span>
+                    </button>
+                    <button mat-flat-button color="warn" 
+                            (click)="onReviewLeave(leave.leaveId, 'Rejected')"
+                            style="background-color: #ef4444; color: white; min-width: auto; padding: 0 12px; height: 32px; font-size: 12px; font-weight: 600;">
+                      <mat-icon style="font-size: 16px; width: 16px; height: 16px; margin-right: 4px;">close</mat-icon>
+                      <span>Reject</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" style="text-align: center; color: #94a3b8; padding: 30px 0 !important;">
+                  <mat-icon style="font-size: 36px; width: 36px; height: 36px; color: #cbd5e1;">done_all</mat-icon>
+                  <p style="margin: 4px 0 0 0; font-size: 13px;">No pending leave approvals</p>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Personal Leave Applications section -->
+    <div class="wms-card">
+      <h2 style="font-size: 15px; font-weight: 700; color: #1e293b; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
+        <mat-icon style="color: #3b82f6;">calendar_today</mat-icon>
+        <span>My Leave Applications</span>
+      </h2>
+
+      <div class="wms-table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>LEAVE TYPE</th>
+              <th>DATE RANGE</th>
+              <th>REASON</th>
+              <th>APPLIED ON</th>
+              <th>STATUS</th>
+              <th style="text-align: right;">ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (leave of myLeaves; track leave.leaveId) {
+              <tr>
+                <td style="font-weight: 500;">{{ leave.leaveType }}</td>
+                <td>{{ leave.fromDate | date:'dd-MM-yyyy' }} to {{ leave.toDate | date:'dd-MM-yyyy' }}</td>
+                <td>{{ leave.reason || 'None' }}</td>
+                <td>{{ leave.appliedOn | date:'dd-MM-yyyy' }}</td>
+                <td>
+                  <span class="status-badge" [ngClass]="leave.status.toLowerCase()">{{ leave.status }}</span>
+                </td>
+                <td style="text-align: right;">
+                  @if (leave.status === 'Pending') {
+                    <button mat-icon-button color="warn" (click)="onCancelLeave(leave.leaveId)" matTooltip="Cancel Leave Application">
+                      <mat-icon style="color: #ef4444;">delete_outline</mat-icon>
+                    </button>
+                  } @else {
+                    <span style="font-size: 12px; color: #94a3b8;">Closed</span>
+                  }
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" style="text-align: center; color: #94a3b8; padding: 40px 0 !important;">
+                  <mat-icon style="font-size: 40px; width: 40px; height: 40px;">event_note</mat-icon>
+                  <p style="margin: 8px 0 0 0; font-size: 13px;">You haven't applied for any leaves yet</p>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+</div>
+
+<style>
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+</style>

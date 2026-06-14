@@ -1,0 +1,134 @@
+<mat-sidenav-container class="layout-container">
+  <!-- Sidebar Navigation Drawer -->
+  <mat-sidenav mode="side" opened class="sidenav" [class.collapsed]="isCollapsed">
+    <!-- Branding Header -->
+    <div class="sidebar-header">
+      <mat-icon>inventory_2</mat-icon>
+      <h1>WMS Portal</h1>
+    </div>
+
+    <!-- Active User Context Card -->
+    @if (currentUser) {
+      <div class="user-avatar-container">
+        <div class="avatar">{{ currentUser.username | initials }}</div>
+        <div class="user-info">
+          <span class="name">{{ currentUser.username }}</span>
+          <span class="role-badge">{{ currentUser.role }}</span>
+        </div>
+      </div>
+    }
+
+    <!-- Nav Link List -->
+    <nav class="nav-list">
+      <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
+        <mat-icon>dashboard</mat-icon>
+        <span class="nav-label">Dashboard</span>
+      </a>
+
+      <a *appHasRole="['Admin', 'Manager']" routerLink="/employees" routerLinkActive="active" class="nav-item">
+        <mat-icon>people</mat-icon>
+        <span class="nav-label">Employees</span>
+      </a>
+
+      <a *appHasRole="['Admin']" routerLink="/departments" routerLinkActive="active" class="nav-item">
+        <mat-icon>business</mat-icon>
+        <span class="nav-label">Departments</span>
+      </a>
+
+      <a *appHasRole="['Admin']" routerLink="/roles" routerLinkActive="active" class="nav-item">
+        <mat-icon>security</mat-icon>
+        <span class="nav-label">Roles</span>
+      </a>
+
+      <a *appHasRole="['Admin']" routerLink="/clients" routerLinkActive="active" class="nav-item">
+        <mat-icon>supervised_user_circle</mat-icon>
+        <span class="nav-label">Clients</span>
+      </a>
+
+      <a routerLink="/projects" routerLinkActive="active" class="nav-item">
+        <mat-icon>work</mat-icon>
+        <span class="nav-label">Projects</span>
+      </a>
+
+      <a *appHasRole="['Admin', 'Manager']" routerLink="/allocations" routerLinkActive="active" class="nav-item">
+        <mat-icon>assignment_ind</mat-icon>
+        <span class="nav-label">Project Allocation</span>
+      </a>
+
+      <a routerLink="/attendance" routerLinkActive="active" class="nav-item">
+        <mat-icon>schedule</mat-icon>
+        <span class="nav-label">Attendance</span>
+      </a>
+
+      <a routerLink="/leaves" routerLinkActive="active" class="nav-item">
+        <mat-icon>event_busy</mat-icon>
+        <span class="nav-label">Leave Management</span>
+      </a>
+
+      <a routerLink="/announcements" routerLinkActive="active" class="nav-item">
+        <mat-icon>campaign</mat-icon>
+        <span class="nav-label">Announcements</span>
+      </a>
+
+      <a *appHasRole="['Admin']" routerLink="/audit-logs" routerLinkActive="active" class="nav-item">
+        <mat-icon>history</mat-icon>
+        <span class="nav-label">Audit Logs</span>
+      </a>
+
+      <a routerLink="/profile" routerLinkActive="active" class="nav-item">
+        <mat-icon>account_circle</mat-icon>
+        <span class="nav-label">Profile</span>
+      </a>
+    </nav>
+
+    <!-- Version Footer -->
+    <div class="version-footer">
+      <span>v1.2.0</span>
+    </div>
+  </mat-sidenav>
+
+  <!-- Sidenav Content Area -->
+  <mat-sidenav-content style="display: flex; flex-direction: column; height: 100vh;">
+    <!-- Top App Navbar Header -->
+    <mat-toolbar class="toolbar">
+      <div class="toolbar-left">
+        <button mat-icon-button (click)="toggleSidebar()">
+          <mat-icon>menu</mat-icon>
+        </button>
+        <span class="wms-font-subtitle" style="font-weight: 500; font-size: 16px;">Workforce Management System</span>
+      </div>
+
+      <div class="toolbar-right">
+        <!-- Notification Mock Badge -->
+        <button mat-icon-button>
+          <mat-icon matBadge="2" matBadgeColor="warn">notifications</mat-icon>
+        </button>
+
+        <!-- Profile Dropdown Trigger -->
+        @if (currentUser) {
+          <button mat-button [matMenuTriggerFor]="profileMenu" style="display: flex; align-items: center; gap: 8px;">
+            <mat-icon>account_circle</mat-icon>
+            <span>{{ currentUser.username }}</span>
+            <mat-icon>arrow_drop_down</mat-icon>
+          </button>
+          <mat-menu #profileMenu="matMenu">
+            <button mat-menu-item routerLink="/profile">
+              <mat-icon>person</mat-icon>
+              <span>My Profile</span>
+            </button>
+            <mat-divider></mat-divider>
+            <button mat-menu-item (click)="logout()">
+              <mat-icon>exit_to_app</mat-icon>
+              <span>Logout</span>
+            </button>
+          </mat-menu>
+        }
+      </div>
+    </mat-toolbar>
+
+    <!-- Render Route Feature Page Inside Scrollable Div -->
+    <div class="content-container">
+      <router-outlet></router-outlet>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>
