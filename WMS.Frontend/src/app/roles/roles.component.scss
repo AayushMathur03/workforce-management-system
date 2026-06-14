@@ -1,0 +1,85 @@
+.content-layout {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.table-container {
+  flex: 1;
+  transition: flex 0.2s ease;
+
+  &.shrink { flex: 1.5; }
+}
+
+.form-container {
+  flex: 0 0 340px;
+}
+
+.form-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 8px;
+
+  .form-card-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+
+    mat-icon { color: var(--mat-sys-primary); }
+  }
+}
+
+.role-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  .full-width { width: 100%; }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-top: 8px;
+  }
+}
+
+.role-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.role-icon-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+}
+
+.id-cell {
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.desc-cell {
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.875rem;
+  max-width: 300px;
+}
+
+@media (max-width: 900px) {
+  .content-layout { flex-direction: column; }
+  .form-container { flex: 0 0 auto; width: 100%; }
+}

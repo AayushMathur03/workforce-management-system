@@ -1,0 +1,53 @@
+.app-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+
+  &.logged-in {
+    overflow: hidden;
+  }
+}
+
+.sidenav-container {
+  height: 100%;
+  width: 100%;
+}
+
+.app-sidenav {
+  width: var(--sidebar-width) !important;
+  border-right: 1px solid var(--mat-sys-outline-variant) !important;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.04) !important;
+  transition: width var(--sidebar-transition) !important;
+  overflow: hidden;
+
+  &.collapsed {
+    width: var(--sidebar-collapsed-width) !important;
+  }
+}
+
+/* Material drawer content: smooth margin transition when sidebar collapses */
+::ng-deep .mat-drawer-content {
+  transition: margin-left var(--sidebar-transition) !important;
+}
+
+.sidenav-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.main-content {
+  flex: 1;
+  padding: var(--space-lg);
+  max-width: 1440px;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0 auto;
+}
+
+.guest-content {
+  height: 100%;
+  width: 100%;
+  overflow: auto;
+}

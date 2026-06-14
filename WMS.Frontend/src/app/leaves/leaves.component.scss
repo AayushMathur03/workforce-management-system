@@ -1,0 +1,78 @@
+.leave-tabs {
+  .tab-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+}
+
+.tab-content {
+  padding: 24px 0;
+}
+
+.apply-card {
+  max-width: 720px;
+}
+
+.form-card-header {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px 4px;
+
+  .form-card-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--mat-sys-on-surface);
+
+    mat-icon { color: var(--mat-sys-primary); }
+  }
+}
+
+.apply-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 16px;
+
+  .full-width { grid-column: 1 / -1; }
+  .apply-actions {
+    grid-column: 1 / -1;
+    padding-top: 8px;
+
+    button {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 44px;
+      padding: 0 24px;
+    }
+  }
+}
+
+.leave-type-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  background: var(--mat-sys-surface-container);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.no-data {
+  text-align: center;
+  padding: 24px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+@media (max-width: 600px) {
+  .apply-form {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,48 @@
+<div class="sidebar-wrapper" [class.collapsed]="collapsed">
+
+  <!-- Brand / Logo -->
+  <div class="brand-header">
+    <mat-icon class="brand-icon">inventory_2</mat-icon>
+    <span class="brand-name">WMS Portal</span>
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <!-- User Profile Section -->
+  <div class="user-profile-section" *ngIf="authService.isLoggedIn()">
+    <div class="avatar-large"
+         [matTooltip]="collapsed ? authService.getUsername() : ''"
+         matTooltipPosition="right">
+      {{ authService.getUsername()?.charAt(0)?.toUpperCase() }}
+    </div>
+    <div class="user-details">
+      <div class="username">{{ authService.getUsername() }}</div>
+      <div class="role-badge">{{ authService.getRole() }}</div>
+    </div>
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <!-- Navigation List -->
+  <mat-nav-list class="nav-list">
+    <ng-container *ngFor="let item of menuItems">
+      <a mat-list-item
+         *ngIf="!item.roleCheck || item.roleCheck()"
+         [routerLink]="item.route"
+         routerLinkActive="active-nav-item"
+         (click)="onItemClick()"
+         [matTooltip]="collapsed ? item.label : ''"
+         matTooltipPosition="right"
+         [attr.aria-label]="item.label">
+        <mat-icon matListItemIcon class="nav-icon">{{ item.icon }}</mat-icon>
+        <span matListItemTitle class="nav-label">{{ item.label }}</span>
+      </a>
+    </ng-container>
+  </mat-nav-list>
+
+  <!-- Sidebar Footer -->
+  <div class="sidebar-footer">
+    <span class="version-label">v1.2.0</span>
+  </div>
+
+</div>

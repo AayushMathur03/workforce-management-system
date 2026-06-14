@@ -1,0 +1,29 @@
+.dept-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dept-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.desc-cell span {
+  display: block;
+  max-width: 380px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.875rem;
+}

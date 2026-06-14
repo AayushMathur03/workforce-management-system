@@ -1,0 +1,38 @@
+<mat-toolbar class="top-bar">
+  <!-- Hamburger — always visible, collapses sidebar on desktop, opens drawer on mobile -->
+  <button mat-icon-button class="menu-btn" (click)="toggle()" aria-label="Toggle sidebar">
+    <mat-icon>menu</mat-icon>
+  </button>
+
+  <span class="page-title">Workforce Management System</span>
+
+  <span class="spacer"></span>
+
+  <ng-container *ngIf="authService.isLoggedIn()">
+    <!-- Announcements Shortcut -->
+    <a mat-icon-button routerLink="/announcements" title="Announcements" class="action-btn" aria-label="Announcements">
+      <mat-icon>campaign</mat-icon>
+    </a>
+
+    <!-- Profile / User Menu -->
+    <button mat-button [matMenuTriggerFor]="userMenu" class="user-menu-btn" aria-label="User menu">
+      <div class="avatar">{{ authService.getUsername()?.charAt(0)?.toUpperCase() }}</div>
+      <span class="user-label">{{ authService.getUsername() }}</span>
+      <mat-icon class="arrow-icon">arrow_drop_down</mat-icon>
+    </button>
+
+    <mat-menu #userMenu="matMenu">
+      <div class="user-menu-header" mat-menu-item disabled>
+        <div class="user-menu-name">{{ authService.getUsername() }}</div>
+        <div class="user-menu-role">{{ authService.getRole() }}</div>
+      </div>
+      <mat-divider></mat-divider>
+      <a mat-menu-item routerLink="/profile">
+        <mat-icon>person</mat-icon> My Profile
+      </a>
+      <button mat-menu-item (click)="logout()">
+        <mat-icon>logout</mat-icon> Logout
+      </button>
+    </mat-menu>
+  </ng-container>
+</mat-toolbar>

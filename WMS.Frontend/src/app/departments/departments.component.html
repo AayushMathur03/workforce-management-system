@@ -1,0 +1,84 @@
+<div class="page-container">
+  <div class="page-header">
+    <div class="header-title-group">
+      <h2>Departments</h2>
+      <p class="header-subtitle">Manage organizational units and business divisions</p>
+    </div>
+    <div class="header-actions">
+      <span class="count-badge" *ngIf="!loading">{{ dataSource.filteredData.length }}</span>
+      <button mat-flat-button color="primary" *ngIf="authService.isAdmin()" (click)="openAdd()" id="btn-add-dept">
+        <mat-icon>add</mat-icon> Add Department
+      </button>
+    </div>
+  </div>
+
+  <mat-card class="wms-card">
+    <mat-card-content>
+
+      <!-- Search Filter -->
+      <div class="filter-bar" *ngIf="!loading">
+        <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
+          <mat-label>Search departments...</mat-label>
+          <input matInput (input)="applyFilter($any($event.target).value)" placeholder="Name or description" />
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+      </div>
+
+      <!-- Loading -->
+      <div *ngIf="loading" class="loading-container">
+        <mat-spinner diameter="44"></mat-spinner>
+        <p>Loading departments...</p>
+      </div>
+
+      <!-- Table -->
+      <div class="table-scroll-wrapper" *ngIf="!loading">
+        <table mat-table [dataSource]="dataSource" matSort class="full-width">
+
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Department Name</th>
+            <td mat-cell *matCellDef="let d">
+              <div class="dept-name-cell">
+                <div class="dept-avatar">{{ d.departmentName.charAt(0) }}</div>
+                <strong>{{ d.departmentName }}</strong>
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="description">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Description</th>
+            <td mat-cell *matCellDef="let d" class="desc-cell">
+              <span [title]="d.description">{{ d.description ?? '—' }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let d">
+              <button mat-icon-button color="primary" *ngIf="authService.isAdmin()" (click)="openEdit(d)" title="Edit">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" *ngIf="authService.isAdmin()" (click)="delete(d)" title="Delete">
+                <mat-icon>delete_outline</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+          <tr class="mat-row" *matNoDataRow>
+            <td class="mat-cell" [attr.colspan]="displayedColumns.length">
+              <div class="empty-state">
+                <div class="empty-icon-wrap"><mat-icon>business</mat-icon></div>
+                <h3>No departments found</h3>
+                <p>{{ dataSource.filter ? 'No results match your search.' : 'Add your first department to get started.' }}</p>
+              </div>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons [class.hidden]="loading"></mat-paginator>
+    </mat-card-content>
+  </mat-card>
+</div>

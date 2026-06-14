@@ -1,0 +1,713 @@
+<div class="page-container">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="48"></mat-spinner>
+    <p>Loading your dashboard details...</p>
+  </div>
+
+  <!-- Main Content Container -->
+  <ng-container *ngIf="!loading">
+    <div class="dashboard-header-block">
+      <div class="welcome-box">
+        <h1>Dashboard</h1>
+        <p class="subtitle">
+          Welcome back, <strong>{{ username }}</strong>
+          <span class="role-badge" [ngClass]="role.toLowerCase()">{{ role }}</span>
+        </p>
+      </div>
+      <div class="date-display">
+        <mat-icon>calendar_today</mat-icon>
+        <span>{{ getLocalDateString(newDate) | date:'EEEE, MMM d, y' }}</span>
+      </div>
+    </div>
+
+    <!-- ROLE SWITCH CONTAINER -->
+    <div [ngSwitch]="role">
+
+      <!-- ==================== ADMIN DASHBOARD ==================== -->
+      <div *ngSwitchCase="'Admin'" class="dashboard-layout">
+        <!-- KPI Cards Grid -->
+        <div class="kpi-grid">
+          <mat-card class="kpi-card info-border">
+            <mat-card-content class="kpi-content">
+              <div class="kpi-icon-wrapper blue">
+                <mat-icon>people</mat-icon>
+              </div>
+              <div class="kpi-metrics">
+                <h3>{{ summary?.activeEmployees ?? 0 }}</h3>
+                <p>Active Staff</p>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="kpi-card success-border">
+            <mat-card-content class="kpi-content">
+              <div class="kpi-icon-wrapper green">
+                <mat-icon>login</mat-icon>
+              </div>
+              <div class="kpi-metrics">
+                <h3>{{ summary?.todayCheckIns ?? 0 }}</h3>
+                <p>Present Today</p>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="kpi-card warning-border">
+            <mat-card-content class="kpi-content">
+              <div class="kpi-icon-wrapper red">
+                <mat-icon>event_busy</mat-icon>
+              </div>
+              <div class="kpi-metrics">
+                <h3>{{ summary?.pendingLeaves ?? 0 }}</h3>
+                <p>Pending Leaves</p>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="kpi-card primary-border">
+            <mat-card-content class="kpi-content">
+              <div class="kpi-icon-wrapper purple">
+                <mat-icon>work</mat-icon>
+              </div>
+              <div class="kpi-metrics">
+                <h3>{{ summary?.activeProjects ?? 0 }}</h3>
+                <p>Active Projects</p>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="kpi-card client-border">
+            <mat-card-content class="kpi-content">
+              <div class="kpi-icon-wrapper teal">
+                <mat-icon>handshake</mat-icon>
+              </div>
+              <div class="kpi-metrics">
+                <h3>{{ summary?.totalClients ?? 0 }}</h3>
+                <p>Total Clients</p>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="kpi-card dept-border">
+            <mat-card-content class="kpi-content">
+              <div class="kpi-icon-wrapper indigo">
+                <mat-icon>business</mat-icon>
+              </div>
+              <div class="kpi-metrics">
+                <h3>{{ summary?.totalDepartments ?? 0 }}</h3>
+                <p>Departments</p>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="chart-grid-two">
+          <mat-card class="wms-card">
+            <mat-card-header>
+              <mat-card-title>Today's Attendance Overview</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="chart-wrapper">
+                <canvas id="overviewChart"></canvas>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="wms-card">
+            <mat-card-header>
+              <mat-card-title>Department Wise Headcount</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="chart-wrapper">
+                <canvas id="deptChart"></canvas>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <!-- Quick Actions & Lists -->
+        <div class="operational-grid">
+          <!-- Quick Actions -->
+          <mat-card class="wms-card action-card">
+            <mat-card-header>
+              <mat-card-title>Administrative Quick Actions</mat-card-title>
+            </mat-card-header>
+            <mat-card-content class="actions-grid">
+              <button mat-raised-button color="primary" (click)="openAddEmployee()">
+                <mat-icon>person_add</mat-icon> Add Employee
+              </button>
+              <button mat-raised-button color="accent" (click)="openCreateProject()">
+                <mat-icon>create_new_folder</mat-icon> Create Project
+              </button>
+              <button mat-raised-button class="teal-btn" (click)="openAddClient()">
+                <mat-icon>group_add</mat-icon> Add Client
+              </button>
+              <button mat-raised-button [routerLink]="['/announcements']" class="orange-btn">
+                <mat-icon>campaign</mat-icon> Announce
+              </button>
+              <button mat-raised-button [routerLink]="['/audit-logs']" class="grey-btn">
+                <mat-icon>history</mat-icon> Audit Logs
+              </button>
+              <button mat-raised-button [routerLink]="['/leaves']" class="red-btn">
+                <mat-icon>pending_actions</mat-icon> Leave Requests
+              </button>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Pending Leave Approvals -->
+          <mat-card class="wms-card table-card">
+            <mat-card-header>
+              <mat-card-title>Pending Leave Requests</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div *ngIf="pendingLeaves.length === 0" class="no-data-msg">
+                <mat-icon>done_all</mat-icon>
+                <p>No leave requests pending review.</p>
+              </div>
+              <table mat-table [dataSource]="pendingLeaves" *ngIf="pendingLeaves.length > 0" class="wms-table">
+                <ng-container matColumnDef="employee">
+                  <th mat-header-cell *matHeaderCellDef>Employee</th>
+                  <td mat-cell *matCellDef="let leave">{{ leave.employeeName }}</td>
+                </ng-container>
+                <ng-container matColumnDef="type">
+                  <th mat-header-cell *matHeaderCellDef>Type</th>
+                  <td mat-cell *matCellDef="let leave">
+                    <span class="chip-status">{{ leave.leaveType }}</span>
+                  </td>
+                </ng-container>
+                <ng-container matColumnDef="dates">
+                  <th mat-header-cell *matHeaderCellDef>Dates</th>
+                  <td mat-cell *matCellDef="let leave">{{ getLocalDateText(leave.fromDate) }} - {{ getLocalDateText(leave.toDate) }}</td>
+                </ng-container>
+                <ng-container matColumnDef="reason">
+                  <th mat-header-cell *matHeaderCellDef>Reason</th>
+                  <td mat-cell *matCellDef="let leave" class="text-truncate">{{ leave.reason }}</td>
+                </ng-container>
+                <ng-container matColumnDef="actions">
+                  <th mat-header-cell *matHeaderCellDef>Actions</th>
+                  <td mat-cell *matCellDef="let leave">
+                    <button mat-icon-button color="primary" matTooltip="Approve" (click)="reviewLeave(leave, 'Approved')">
+                      <mat-icon>check_circle</mat-icon>
+                    </button>
+                    <button mat-icon-button color="warn" matTooltip="Reject" (click)="reviewLeave(leave, 'Rejected')">
+                      <mat-icon>cancel</mat-icon>
+                    </button>
+                  </td>
+                </ng-container>
+                <tr mat-header-row *matHeaderRowDef="leaveColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: leaveColumns;"></tr>
+              </table>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Recent Audit Logs -->
+          <mat-card class="wms-card table-card span-two">
+            <mat-card-header>
+              <mat-card-title>Recent Activity Logs</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div *ngIf="auditLogs.length === 0" class="no-data-msg">
+                <p>No recent activity detected.</p>
+              </div>
+              <table mat-table [dataSource]="auditLogs" *ngIf="auditLogs.length > 0" class="wms-table">
+                <ng-container matColumnDef="entity">
+                  <th mat-header-cell *matHeaderCellDef>Module</th>
+                  <td mat-cell *matCellDef="let log">
+                    <div class="flex-align">
+                      <mat-icon class="icon-inline">{{ getEntityIcon(log.entityName) }}</mat-icon>
+                      <span>{{ log.entityName }}</span>
+                    </div>
+                  </td>
+                </ng-container>
+                <ng-container matColumnDef="action">
+                  <th mat-header-cell *matHeaderCellDef>Action</th>
+                  <td mat-cell *matCellDef="let log">
+                    <span class="audit-badge" [ngClass]="getActionClass(log.action)">
+                      <mat-icon class="icon-inline">{{ getActionIcon(log.action) }}</mat-icon>
+                      {{ log.action }}
+                    </span>
+                  </td>
+                </ng-container>
+                <ng-container matColumnDef="user">
+                  <th mat-header-cell *matHeaderCellDef>User ID</th>
+                  <td mat-cell *matCellDef="let log">Employee #{{ log.createdBy }}</td>
+                </ng-container>
+                <ng-container matColumnDef="date">
+                  <th mat-header-cell *matHeaderCellDef>Timestamp</th>
+                  <td mat-cell *matCellDef="let log">{{ log.createdOn | date:'MMM d, y, h:mm a' }}</td>
+                </ng-container>
+                <tr mat-header-row *matHeaderRowDef="auditColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: auditColumns;"></tr>
+              </table>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Announcements -->
+          <mat-card class="wms-card list-card">
+            <mat-card-header>
+              <mat-card-title>Recent Announcements</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div *ngIf="announcements.length === 0" class="no-data-msg">
+                <mat-icon>campaign</mat-icon>
+                <p>No announcements posted recently.</p>
+              </div>
+              <div class="announcement-item" *ngFor="let a of announcements">
+                <div class="ann-header">
+                  <h4>{{ a.title }}</h4>
+                  <span class="ann-date">{{ getLocalDateText(a.createdOn) }}</span>
+                </div>
+                <p class="ann-message">{{ a.message }}</p>
+                <mat-divider class="ann-divider"></mat-divider>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+
+      <!-- ==================== MANAGER DASHBOARD ==================== -->
+      <div *ngSwitchCase="'Manager'" class="dashboard-layout">
+        <!-- KPI Cards Grid -->
+        <div class="kpi-grid">
+          <mat-card class="kpi-card info-border">
+            <mat-card-content class="kpi-content">
+              <div class="kpi-icon-wrapper blue">
+                <mat-icon>groups</mat-icon>
+              </div>
+              <div class="kpi-metrics">
+                <h3>{{ summary?.activeEmployees ?? 0 }}</h3>
+                <p>Active Staff</p>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="kpi-card success-border">
+            <mat-card-content class="kpi-content">
+              <div class="kpi-icon-wrapper green">
+                <mat-icon>how_to_reg</mat-icon>
+              </div>
+              <div class="kpi-metrics">
+                <h3>{{ summary?.todayCheckIns ?? 0 }}</h3>
+                <p>Present Today</p>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="kpi-card warning-border">
+            <mat-card-content class="kpi-content">
+              <div class="kpi-icon-wrapper red">
+                <mat-icon>pending_actions</mat-icon>
+              </div>
+              <div class="kpi-metrics">
+                <h3>{{ summary?.pendingLeaves ?? 0 }}</h3>
+                <p>Team Leaves</p>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="kpi-card primary-border">
+            <mat-card-content class="kpi-content">
+              <div class="kpi-icon-wrapper purple">
+                <mat-icon>assignment_ind</mat-icon>
+              </div>
+              <div class="kpi-metrics">
+                <h3>{{ allocations.length }}</h3>
+                <p>Active Allocations</p>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="chart-grid-two">
+          <mat-card class="wms-card">
+            <mat-card-header>
+              <mat-card-title>Team Presence Today</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="chart-wrapper">
+                <canvas id="teamAttendanceChart"></canvas>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="wms-card">
+            <mat-card-header>
+              <mat-card-title>Project Resource Load</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="chart-wrapper">
+                <canvas id="teamWorkloadChart"></canvas>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <!-- Team Lists & Actions -->
+        <div class="operational-grid">
+          <!-- Quick Actions -->
+          <mat-card class="wms-card action-card">
+            <mat-card-header>
+              <mat-card-title>Manager Operations</mat-card-title>
+            </mat-card-header>
+            <mat-card-content class="actions-grid">
+              <button mat-raised-button color="primary" [routerLink]="['/leaves']">
+                <mat-icon>check_circle</mat-icon> Approve Leaves
+              </button>
+              <button mat-raised-button color="accent" [routerLink]="['/project-allocation']">
+                <mat-icon>assignment_ind</mat-icon> Manage Allocations
+              </button>
+              <button mat-raised-button class="teal-btn" [routerLink]="['/projects']">
+                <mat-icon>work</mat-icon> Team Projects
+              </button>
+              <button mat-raised-button class="orange-btn" [routerLink]="['/announcements']">
+                <mat-icon>campaign</mat-icon> Announcements
+              </button>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Pending Team Leaves -->
+          <mat-card class="wms-card table-card">
+            <mat-card-header>
+              <mat-card-title>Pending Approvals</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div *ngIf="pendingLeaves.length === 0" class="no-data-msg">
+                <mat-icon>done_all</mat-icon>
+                <p>No team leaves pending approval.</p>
+              </div>
+              <table mat-table [dataSource]="pendingLeaves" *ngIf="pendingLeaves.length > 0" class="wms-table">
+                <ng-container matColumnDef="employee">
+                  <th mat-header-cell *matHeaderCellDef>Staff</th>
+                  <td mat-cell *matCellDef="let leave">{{ leave.employeeName }}</td>
+                </ng-container>
+                <ng-container matColumnDef="type">
+                  <th mat-header-cell *matHeaderCellDef>Type</th>
+                  <td mat-cell *matCellDef="let leave">{{ leave.leaveType }}</td>
+                </ng-container>
+                <ng-container matColumnDef="dates">
+                  <th mat-header-cell *matHeaderCellDef>Dates</th>
+                  <td mat-cell *matCellDef="let leave">{{ getLocalDateText(leave.fromDate) }} - {{ getLocalDateText(leave.toDate) }}</td>
+                </ng-container>
+                <ng-container matColumnDef="reason">
+                  <th mat-header-cell *matHeaderCellDef>Reason</th>
+                  <td mat-cell *matCellDef="let leave" class="text-truncate">{{ leave.reason }}</td>
+                </ng-container>
+                <ng-container matColumnDef="actions">
+                  <th mat-header-cell *matHeaderCellDef>Actions</th>
+                  <td mat-cell *matCellDef="let leave">
+                    <button mat-icon-button color="primary" (click)="reviewLeave(leave, 'Approved')">
+                      <mat-icon>check_circle</mat-icon>
+                    </button>
+                    <button mat-icon-button color="warn" (click)="reviewLeave(leave, 'Rejected')">
+                      <mat-icon>cancel</mat-icon>
+                    </button>
+                  </td>
+                </ng-container>
+                <tr mat-header-row *matHeaderRowDef="leaveColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: leaveColumns;"></tr>
+              </table>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Projects Resource Allocation Table -->
+          <mat-card class="wms-card table-card span-two">
+            <mat-card-header>
+              <mat-card-title>Project Resource Assignments</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div *ngIf="allocations.length === 0" class="no-data-msg">
+                <p>No active project allocations.</p>
+              </div>
+              <table mat-table [dataSource]="allocations" *ngIf="allocations.length > 0" class="wms-table">
+                <ng-container matColumnDef="project">
+                  <th mat-header-cell *matHeaderCellDef>Project Name</th>
+                  <td mat-cell *matCellDef="let alloc"><strong>{{ alloc.projectName }}</strong></td>
+                </ng-container>
+                <ng-container matColumnDef="assignedOn">
+                  <th mat-header-cell *matHeaderCellDef>Staff Allocated</th>
+                  <td mat-cell *matCellDef="let alloc">{{ alloc.employeeName }}</td>
+                </ng-container>
+                <ng-container matColumnDef="status">
+                  <th mat-header-cell *matHeaderCellDef>Allocated Date</th>
+                  <td mat-cell *matCellDef="let alloc">{{ getLocalDateText(alloc.assignedOn) }}</td>
+                </ng-container>
+                <tr mat-header-row *matHeaderRowDef="allocationColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: allocationColumns;"></tr>
+              </table>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Announcements -->
+          <mat-card class="wms-card list-card">
+            <mat-card-header>
+              <mat-card-title>Recent Announcements</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div *ngIf="announcements.length === 0" class="no-data-msg">
+                <mat-icon>campaign</mat-icon>
+                <p>No recent announcements.</p>
+              </div>
+              <div class="announcement-item" *ngFor="let a of announcements">
+                <div class="ann-header">
+                  <h4>{{ a.title }}</h4>
+                  <span class="ann-date">{{ getLocalDateText(a.createdOn) }}</span>
+                </div>
+                <p class="ann-message">{{ a.message }}</p>
+                <mat-divider class="ann-divider"></mat-divider>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+
+      <!-- ==================== EMPLOYEE DASHBOARD ==================== -->
+      <div *ngSwitchCase="'Employee'" class="dashboard-layout">
+        <div class="employee-core-grid">
+          <!-- Daily Work Tracker (Check-in Check-out Glass Card) -->
+          <mat-card class="wms-card attendance-tracker-card">
+            <mat-card-header>
+              <mat-card-title>Daily Attendance Tracker</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="tracker-status-block">
+                <div class="status-indicator">
+                  <span class="status-dot" [ngClass]="getAttendancePulseColor()"></span>
+                  <span class="status-text">{{ getAttendanceStatus() }}</span>
+                </div>
+                <div class="tracker-time-text">
+                  <span class="label">Date:</span>
+                  <span class="value">{{ getLocalDateString(newDate) | date:'mediumDate' }}</span>
+                </div>
+              </div>
+
+              <div class="tracker-controls">
+                <div *ngIf="getAttendanceStatus() === 'Absent'" class="workmode-select-block">
+                  <label for="mode-select">Select Work Mode</label>
+                  <select id="mode-select" [(ngModel)]="selectedWorkMode" class="wms-select">
+                    <option value="WFO">🏢 Work From Office (WFO)</option>
+                    <option value="WFH">🏠 Work From Home (WFH)</option>
+                    <option value="Hybrid">🔀 Hybrid Mode</option>
+                  </select>
+                </div>
+
+                <div class="controls-row">
+                  <button mat-raised-button color="primary" 
+                          *ngIf="getAttendanceStatus() === 'Absent'" 
+                          (click)="checkIn()" [disabled]="checkingIn" 
+                          class="tracker-btn checkin">
+                    <mat-icon>login</mat-icon> Check In
+                  </button>
+                  <button mat-raised-button color="warn" 
+                          *ngIf="getAttendanceStatus() === 'Checked In'" 
+                          (click)="checkOut()" [disabled]="checkingOut" 
+                          class="tracker-btn checkout">
+                    <mat-icon>logout</mat-icon> Check Out
+                  </button>
+                  <div *ngIf="getAttendanceStatus() === 'Checked Out'" class="checkout-complete">
+                    <mat-icon class="green-icon">check_circle</mat-icon>
+                    <span>Check-out complete. Well done today!</span>
+                  </div>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- KPI Cards Grid (Compact) -->
+          <div class="kpi-grid-compact">
+            <mat-card class="kpi-card info-border">
+              <mat-card-content class="kpi-content">
+                <div class="kpi-icon-wrapper blue">
+                  <mat-icon>work</mat-icon>
+                </div>
+                <div class="kpi-metrics">
+                  <h3>{{ myProjects.length }}</h3>
+                  <p>My Active Projects</p>
+                </div>
+              </mat-card-content>
+            </mat-card>
+
+            <mat-card class="kpi-card success-border">
+              <mat-card-content class="kpi-content">
+                <div class="kpi-icon-wrapper green">
+                  <mat-icon>check_circle</mat-icon>
+                </div>
+                <div class="kpi-metrics">
+                  <h3>{{ getApprovedLeavesCount() }}</h3>
+                  <p>Approved Leaves</p>
+                </div>
+              </mat-card-content>
+            </mat-card>
+
+            <mat-card class="kpi-card warning-border">
+              <mat-card-content class="kpi-content">
+                <div class="kpi-icon-wrapper red">
+                  <mat-icon>pending_actions</mat-icon>
+                </div>
+                <div class="kpi-metrics">
+                  <h3>{{ getPendingLeavesCount() }}</h3>
+                  <p>Pending Requests</p>
+                </div>
+              </mat-card-content>
+            </mat-card>
+
+            <mat-card class="kpi-card dept-border">
+              <mat-card-content class="kpi-content">
+                <div class="kpi-icon-wrapper indigo">
+                  <mat-icon>schedule</mat-icon>
+                </div>
+                <div class="kpi-metrics">
+                  <h3>{{ getMyAverageDailyHours() }}</h3>
+                  <p>Daily Average (Month)</p>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="chart-grid-two">
+          <mat-card class="wms-card">
+            <mat-card-header>
+              <mat-card-title>Weekly Working Hours Trend</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div *ngIf="myAttendance.length === 0" class="no-data-msg">
+                <p>No attendance logs yet.</p>
+              </div>
+              <div class="chart-wrapper" [hidden]="myAttendance.length === 0">
+                <canvas id="workHoursChart"></canvas>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="wms-card">
+            <mat-card-header>
+              <mat-card-title>Work Mode Distribution</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div *ngIf="myAttendance.length === 0" class="no-data-msg">
+                <p>No attendance logs yet.</p>
+              </div>
+              <div class="chart-wrapper" [hidden]="myAttendance.length === 0">
+                <canvas id="workModeChart"></canvas>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <!-- Personal Operational Section -->
+        <div class="operational-grid">
+          <!-- Quick Actions -->
+          <mat-card class="wms-card action-card">
+            <mat-card-header>
+              <mat-card-title>Quick Shortcuts</mat-card-title>
+            </mat-card-header>
+            <mat-card-content class="actions-grid">
+              <button mat-raised-button color="primary" [routerLink]="['/leaves']">
+                <mat-icon>add_box</mat-icon> Apply Leave
+              </button>
+              <button mat-raised-button color="accent" [routerLink]="['/attendance']">
+                <mat-icon>history_toggle_off</mat-icon> Attendance Log
+              </button>
+              <button mat-raised-button class="teal-btn" [routerLink]="['/profile']">
+                <mat-icon>account_circle</mat-icon> View Profile
+              </button>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- My Active Projects -->
+          <mat-card class="wms-card table-card">
+            <mat-card-header>
+              <mat-card-title>My Assigned Projects</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div *ngIf="myProjects.length === 0" class="no-data-msg">
+                <mat-icon>work_off</mat-icon>
+                <p>You are not currently assigned to any project.</p>
+              </div>
+              <table mat-table [dataSource]="myProjects" *ngIf="myProjects.length > 0" class="wms-table">
+                <ng-container matColumnDef="project">
+                  <th mat-header-cell *matHeaderCellDef>Project Name</th>
+                  <td mat-cell *matCellDef="let proj"><strong>{{ proj.projectName }}</strong></td>
+                </ng-container>
+                <ng-container matColumnDef="assignedOn">
+                  <th mat-header-cell *matHeaderCellDef>Allocated Date</th>
+                  <td mat-cell *matCellDef="let proj">{{ getLocalDateText(proj.assignedOn) }}</td>
+                </ng-container>
+                <ng-container matColumnDef="status">
+                  <th mat-header-cell *matHeaderCellDef>Status</th>
+                  <td mat-cell *matCellDef="let proj">
+                    <span class="badge-active" [ngClass]="proj.status ? 'active' : 'inactive'">
+                      {{ proj.status ? 'Active' : 'Deactivated' }}
+                    </span>
+                  </td>
+                </ng-container>
+                <tr mat-header-row *matHeaderRowDef="allocationColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: allocationColumns;"></tr>
+              </table>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Recent Leaves Requests -->
+          <mat-card class="wms-card table-card span-two">
+            <mat-card-header>
+              <mat-card-title>My Leave Requests</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div *ngIf="myLeaves.length === 0" class="no-data-msg">
+                <mat-icon>event_available</mat-icon>
+                <p>No leave requests submitted yet.</p>
+              </div>
+              <table mat-table [dataSource]="myLeaves" *ngIf="myLeaves.length > 0" class="wms-table">
+                <ng-container matColumnDef="type">
+                  <th mat-header-cell *matHeaderCellDef>Leave Type</th>
+                  <td mat-cell *matCellDef="let leave">{{ leave.leaveType }}</td>
+                </ng-container>
+                <ng-container matColumnDef="dates">
+                  <th mat-header-cell *matHeaderCellDef>Requested Dates</th>
+                  <td mat-cell *matCellDef="let leave">{{ getLocalDateText(leave.fromDate) }} - {{ getLocalDateText(leave.toDate) }}</td>
+                </ng-container>
+                <ng-container matColumnDef="reason">
+                  <th mat-header-cell *matHeaderCellDef>Reason</th>
+                  <td mat-cell *matCellDef="let leave" class="text-truncate">{{ leave.reason }}</td>
+                </ng-container>
+                <ng-container matColumnDef="status">
+                  <th mat-header-cell *matHeaderCellDef>Status</th>
+                  <td mat-cell *matCellDef="let leave">
+                    <span class="leave-status-badge" [ngClass]="leave.status.toLowerCase()">{{ leave.status }}</span>
+                  </td>
+                </ng-container>
+                <tr mat-header-row *matHeaderRowDef="employeeLeaveColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: employeeLeaveColumns;"></tr>
+              </table>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Announcements -->
+          <mat-card class="wms-card list-card">
+            <mat-card-header>
+              <mat-card-title>Recent Announcements</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div *ngIf="announcements.length === 0" class="no-data-msg">
+                <mat-icon>campaign</mat-icon>
+                <p>No recent announcements.</p>
+              </div>
+              <div class="announcement-item" *ngFor="let a of announcements">
+                <div class="ann-header">
+                  <h4>{{ a.title }}</h4>
+                  <span class="ann-date">{{ getLocalDateText(a.createdOn) }}</span>
+                </div>
+                <p class="ann-message">{{ a.message }}</p>
+                <mat-divider class="ann-divider"></mat-divider>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+
+    </div>
+  </ng-container>
+</div>

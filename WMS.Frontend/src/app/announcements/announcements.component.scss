@@ -1,0 +1,33 @@
+.announcements-container { padding: 8px 0; }
+
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.page-title { font-size: 1.6rem; font-weight: 600; margin: 0; }
+
+.loading-center { display: flex; justify-content: center; padding: 40px; }
+
+.no-data {
+  text-align: center;
+  padding: 60px 24px;
+  color: var(--mat-sys-on-surface-variant);
+  .no-data-icon { font-size: 48px; width: 48px; height: 48px; margin-bottom: 8px; opacity: 0.4; }
+}
+
+.announcements-list { display: flex; flex-direction: column; gap: 16px; }
+
+.announcement-card {
+  &.inactive { opacity: 0.6; }
+
+  mat-card-header { align-items: center; }
+  .spacer { flex: 1; }
+}
+
+.announcement-message { margin: 8px 0 0; line-height: 1.6; white-space: pre-wrap; }
+
+.status-chip {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  &.active { background: #e8f5e9; color: #2e7d32; }
+  &.inactive { background: #fce4ec; color: #c62828; }
+}

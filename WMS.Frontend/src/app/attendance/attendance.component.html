@@ -1,0 +1,366 @@
+<div class="page-container animate-fade-in">
+  <div class="page-header">
+    <div class="header-titles">
+      <h2>Attendance Dashboard</h2>
+      <p class="subtitle">Track your daily clock-ins, shift hours, and monthly timesheets</p>
+    </div>
+    <span class="today-date-badge">
+      <mat-icon>today</mat-icon>
+      {{ today | date:'EEEE, d MMMM yyyy' }}
+    </span>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       TODAY'S ATTENDANCE SUMMARY CARD
+  ═════════════════════════════════════════════ -->
+  <mat-card class="wms-card today-card">
+    <mat-card-content>
+      <div class="today-grid">
+
+        <!-- LEFT: Action Form Panel -->
+        <div class="today-actions">
+          <div class="panel-header">
+            <div class="title-with-icon">
+              <span class="pulse-icon-holder">
+                <mat-icon>fingerprint</mat-icon>
+              </span>
+              <h3>Mark Attendance</h3>
+            </div>
+            <p class="panel-desc">Select your work location mode and register your shift timings.</p>
+          </div>
+
+          <form [formGroup]="checkInForm" class="checkin-form">
+            <mat-form-field appearance="outline" class="work-mode-field">
+              <mat-label>Work Mode</mat-label>
+              <mat-select formControlName="workMode">
+                <mat-select-trigger>
+                  <span class="select-option-with-icon" *ngIf="checkInForm.get('workMode')?.value">
+                    <mat-icon [class.mode-icon-office]="checkInForm.get('workMode')?.value === 'WFO'"
+                              [class.mode-icon-home]="checkInForm.get('workMode')?.value === 'WFH'"
+                              [class.mode-icon-hybrid]="checkInForm.get('workMode')?.value === 'Hybrid'">
+                      {{ checkInForm.get('workMode')?.value === 'WFO' ? 'business' : checkInForm.get('workMode')?.value === 'WFH' ? 'home' : 'swap_horiz' }}
+                    </mat-icon>
+                    <span>{{ checkInForm.get('workMode')?.value === 'WFO' ? 'Work From Office' : checkInForm.get('workMode')?.value === 'WFH' ? 'Work From Home' : 'Hybrid Mode' }}</span>
+                  </span>
+                </mat-select-trigger>
+                <mat-option value="WFO">
+                  <span class="select-option-with-icon">
+                    <mat-icon class="mode-icon-office">business</mat-icon>
+                    <span>Work From Office</span>
+                  </span>
+                </mat-option>
+                <mat-option value="WFH">
+                  <span class="select-option-with-icon">
+                    <mat-icon class="mode-icon-home">home</mat-icon>
+                    <span>Work From Home</span>
+                  </span>
+                </mat-option>
+                <mat-option value="Hybrid">
+                  <span class="select-option-with-icon">
+                    <mat-icon class="mode-icon-hybrid">swap_horiz</mat-icon>
+                    <span>Hybrid Mode</span>
+                  </span>
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <div class="action-buttons">
+              <button
+                mat-flat-button
+                class="btn-checkin"
+                (click)="checkIn()"
+                [disabled]="checkingIn || loadingToday || todayStatus !== 'Absent'">
+                <mat-spinner diameter="18" *ngIf="checkingIn" color="accent" class="button-spinner"></mat-spinner>
+                <mat-icon *ngIf="!checkingIn">login</mat-icon>
+                <span>{{ checkingIn ? 'Checking In…' : 'Check In' }}</span>
+              </button>
+
+              <button
+                mat-flat-button
+                class="btn-checkout"
+                (click)="checkOut()"
+                [disabled]="checkingOut || loadingToday || todayStatus !== 'Checked In'">
+                <mat-spinner diameter="18" *ngIf="checkingOut" color="warn" class="button-spinner"></mat-spinner>
+                <mat-icon *ngIf="!checkingOut">logout</mat-icon>
+                <span>{{ checkingOut ? 'Checking Out…' : 'Check Out' }}</span>
+              </button>
+            </div>
+          </form>
+
+          <div *ngIf="loadingToday" class="today-loading-overlay">
+            <mat-spinner diameter="20"></mat-spinner>
+            <span>Retrieving today's status…</span>
+          </div>
+        </div>
+
+        <!-- DIVIDER -->
+        <div class="today-divider"></div>
+
+        <!-- RIGHT: Live Status Panel -->
+        <div class="today-summary">
+          <div class="panel-header">
+            <div class="title-with-icon">
+              <mat-icon class="status-panel-icon">insights</mat-icon>
+              <h3>Live Status</h3>
+            </div>
+            <p class="panel-desc">Real-time status tracking for current date</p>
+          </div>
+
+          <div class="status-badge-container">
+            <div class="status-badge"
+                 [class.badge-absent]="todayStatus === 'Absent'"
+                 [class.badge-checkedin]="todayStatus === 'Checked In'"
+                 [class.badge-checkedout]="todayStatus === 'Checked Out'">
+              <span class="status-dot"></span>
+              <mat-icon>
+                {{ todayStatus === 'Absent' ? 'person_off'
+                   : todayStatus === 'Checked In' ? 'how_to_reg'
+                   : 'task_alt' }}
+              </mat-icon>
+              <span>{{ todayStatus }}</span>
+            </div>
+          </div>
+
+          <!-- Stat Panel Grid -->
+          <div class="stat-grid">
+            <div class="stat-item">
+              <div class="stat-icon-wrapper checkin-bg">
+                <mat-icon class="stat-icon icon-checkin">login</mat-icon>
+              </div>
+              <div class="stat-info">
+                <span class="stat-label">Check-In Time</span>
+                <span class="stat-value">
+                  {{ todayRecord?.checkIn ? (todayRecord!.checkIn | date:'hh:mm a') : '—' }}
+                </span>
+              </div>
+            </div>
+
+            <div class="stat-item">
+              <div class="stat-icon-wrapper checkout-bg">
+                <mat-icon class="stat-icon icon-checkout">logout</mat-icon>
+              </div>
+              <div class="stat-info">
+                <span class="stat-label">Check-Out Time</span>
+                <span class="stat-value">
+                  {{ todayRecord?.checkOut ? (todayRecord!.checkOut | date:'hh:mm a') : '—' }}
+                </span>
+              </div>
+            </div>
+
+            <div class="stat-item">
+              <div class="stat-icon-wrapper hours-bg">
+                <mat-icon class="stat-icon icon-hours">schedule</mat-icon>
+              </div>
+              <div class="stat-info">
+                <span class="stat-label">Working Hours</span>
+                <span class="stat-value highlight-value">{{ todayWorkingHours }}</span>
+              </div>
+            </div>
+
+            <div class="stat-item">
+              <div class="stat-icon-wrapper mode-bg">
+                <mat-icon class="stat-icon icon-mode">work_outline</mat-icon>
+              </div>
+              <div class="stat-info">
+                <span class="stat-label">Work Mode</span>
+                <span class="stat-value">{{ todayRecord?.workMode ?? '—' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- ══════════════════════════════════════════
+       MONTHLY ATTENDANCE ARCHIVE CARD
+  ═════════════════════════════════════════════ -->
+  <mat-card class="wms-card monthly-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>calendar_month</mat-icon>
+        <span>Timesheet & Reports</span>
+      </mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+
+      <!-- Filter Controls Row -->
+      <div class="filter-row">
+        <div class="filter-left">
+          <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
+            <mat-label>Month</mat-label>
+            <mat-select [(ngModel)]="selectedMonth" [ngModelOptions]="{standalone: true}" (selectionChange)="loadMonthly()">
+              <mat-option *ngFor="let m of months" [value]="m.value">{{ m.label }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field year-field" subscriptSizing="dynamic">
+            <mat-label>Year</mat-label>
+            <input matInput type="number" [(ngModel)]="selectedYear" [ngModelOptions]="{standalone: true}" (change)="loadMonthly()" />
+          </mat-form-field>
+
+          <button mat-icon-button (click)="loadMonthly()" matTooltip="Refresh Timesheet" class="refresh-btn">
+            <mat-icon>refresh</mat-icon>
+          </button>
+        </div>
+
+        <div class="filter-right">
+          <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
+            <mat-label>Search records...</mat-label>
+            <input matInput [(ngModel)]="searchTerm" placeholder="Filter by date, mode, status..." />
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- KPI Summary Row -->
+      <div class="kpi-row" *ngIf="!loadingMonthly">
+        <div class="kpi-mini-card kpi-present">
+          <div class="kpi-icon-holder">
+            <mat-icon>event_available</mat-icon>
+          </div>
+          <div class="kpi-mini-info">
+            <span class="kpi-mini-value">{{ monthlyRecords.length }}</span>
+            <span class="kpi-mini-label">Present Days</span>
+          </div>
+          <div class="kpi-badge">Active</div>
+        </div>
+
+        <div class="kpi-mini-card kpi-hours">
+          <div class="kpi-icon-holder">
+            <mat-icon>access_time</mat-icon>
+          </div>
+          <div class="kpi-mini-info">
+            <span class="kpi-mini-value">{{ totalWorkingHours | number:'1.1-1' }}h</span>
+            <span class="kpi-mini-label">Total Hours Worked</span>
+          </div>
+          <div class="kpi-badge">Logged</div>
+        </div>
+
+        <div class="kpi-mini-card kpi-pct">
+          <div class="kpi-content-top">
+            <div class="kpi-icon-holder">
+              <mat-icon>percent</mat-icon>
+            </div>
+            <div class="kpi-mini-info">
+              <span class="kpi-mini-value">{{ attendancePercentage }}%</span>
+              <span class="kpi-mini-label">Attendance Rate</span>
+            </div>
+          </div>
+          <!-- Progress bar -->
+          <div class="att-progress-track">
+            <div class="att-progress-fill"
+                 [class.pct-high]="attendancePercentage >= 75"
+                 [class.pct-mid]="attendancePercentage >= 50 && attendancePercentage < 75"
+                 [class.pct-low]="attendancePercentage < 50"
+                 [style.width.%]="attendancePercentage"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading Spinner Block -->
+      <div *ngIf="loadingMonthly" class="loading-container">
+        <mat-spinner diameter="40"></mat-spinner>
+        <span>Loading timesheet records...</span>
+      </div>
+
+      <!-- Empty State Block -->
+      <div *ngIf="!loadingMonthly && filteredMonthlyRecords.length === 0" class="empty-state">
+        <div class="empty-icon-holder">
+          <mat-icon>{{ searchTerm ? 'search_off' : 'event_busy' }}</mat-icon>
+        </div>
+        <h4>{{ searchTerm ? 'No matching records' : 'No records found' }}</h4>
+        <p>{{ searchTerm ? 'Try adjusting your search criteria or clear the search field.' : 'No attendance entries could be loaded for this period.' }}</p>
+        <button mat-stroked-button *ngIf="searchTerm" (click)="searchTerm = ''">Clear Search</button>
+      </div>
+
+      <!-- Records Data Table -->
+      <div class="table-wrapper" *ngIf="!loadingMonthly && filteredMonthlyRecords.length > 0">
+        <table mat-table [dataSource]="filteredMonthlyRecords" class="full-width">
+
+          <!-- Date Column -->
+          <ng-container matColumnDef="date">
+            <th mat-header-cell *matHeaderCellDef>Date</th>
+            <td mat-cell *matCellDef="let r">
+              <div class="date-cell">
+                <span class="date-primary">{{ r.attendanceDate | date:'d MMM yyyy' }}</span>
+                <span class="date-secondary">{{ r.attendanceDate | date:'EEEE' }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Check-In Time Column -->
+          <ng-container matColumnDef="checkIn">
+            <th mat-header-cell *matHeaderCellDef>Check-In</th>
+            <td mat-cell *matCellDef="let r">
+              <span class="time-chip time-in">
+                <mat-icon>login</mat-icon>
+                {{ r.checkIn | date:'hh:mm a' }}
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Check-Out Time Column -->
+          <ng-container matColumnDef="checkOut">
+            <th mat-header-cell *matHeaderCellDef>Check-Out</th>
+            <td mat-cell *matCellDef="let r">
+              <span *ngIf="r.checkOut" class="time-chip time-out">
+                <mat-icon>logout</mat-icon>
+                {{ r.checkOut | date:'hh:mm a' }}
+              </span>
+              <span *ngIf="!r.checkOut" class="time-chip time-pending animate-pulse">
+                <mat-icon class="spin-pending">pending</mat-icon> In Progress
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Total Hours Column -->
+          <ng-container matColumnDef="totalHours">
+            <th mat-header-cell *matHeaderCellDef>Hours</th>
+            <td mat-cell *matCellDef="let r">
+              <span class="hours-value font-numeric" *ngIf="r.totalHours">
+                {{ r.totalHours | number:'1.1-1' }} hrs
+              </span>
+              <span class="hours-value text-muted" *ngIf="!r.totalHours">—</span>
+            </td>
+          </ng-container>
+
+          <!-- Work Mode Column -->
+          <ng-container matColumnDef="workMode">
+            <th mat-header-cell *matHeaderCellDef>Work Mode</th>
+            <td mat-cell *matCellDef="let r">
+              <span class="mode-chip"
+                    [class.mode-wfo]="r.workMode === 'WFO'"
+                    [class.mode-wfh]="r.workMode === 'WFH'"
+                    [class.mode-hybrid]="r.workMode === 'Hybrid'">
+                <mat-icon class="mode-chip-icon">
+                  {{ r.workMode === 'WFO' ? 'business' : r.workMode === 'WFH' ? 'home' : 'swap_horiz' }}
+                </mat-icon>
+                <span>{{ r.workMode ?? '—' }}</span>
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Status Column -->
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Status</th>
+            <td mat-cell *matCellDef="let r">
+              <span class="status-chip"
+                    [class.status-completed]="r.checkOut"
+                    [class.status-inprogress]="!r.checkOut">
+                {{ r.checkOut ? 'Completed' : 'In Progress' }}
+              </span>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row-hover"></tr>
+        </table>
+      </div>
+
+    </mat-card-content>
+  </mat-card>
+
+</div>

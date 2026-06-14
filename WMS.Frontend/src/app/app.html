@@ -1,0 +1,33 @@
+<div class="app-container" [class.logged-in]="authService.isLoggedIn()">
+  <ng-container *ngIf="authService.isLoggedIn(); else guestLayout">
+    <mat-sidenav-container #sidenavContainer class="sidenav-container">
+
+      <mat-sidenav #sidenav
+                   [mode]="isMobile ? 'over' : 'side'"
+                   [opened]="!isMobile"
+                   class="app-sidenav"
+                   [class.collapsed]="sidebarCollapsed"
+                   (closedStart)="isMobile && sidenav.close()">
+        <app-sidebar
+          [collapsed]="sidebarCollapsed && !isMobile"
+          (closeSidenav)="isMobile && sidenav.close()">
+        </app-sidebar>
+      </mat-sidenav>
+
+      <mat-sidenav-content class="sidenav-content"
+                           [style.margin-left]="isMobile ? '0' : (sidebarCollapsed ? 'var(--sidebar-collapsed-width)' : 'var(--sidebar-width)')">
+        <app-navbar (toggleSidenav)="onToggleSidenav()"></app-navbar>
+        <main class="main-content">
+          <router-outlet></router-outlet>
+        </main>
+      </mat-sidenav-content>
+
+    </mat-sidenav-container>
+  </ng-container>
+
+  <ng-template #guestLayout>
+    <main class="guest-content">
+      <router-outlet></router-outlet>
+    </main>
+  </ng-template>
+</div>

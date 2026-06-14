@@ -1,0 +1,23 @@
+<h2 mat-dialog-title>{{ isEdit ? 'Edit Department' : 'Add Department' }}</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" class="dialog-form">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Department Name</mat-label>
+      <input matInput formControlName="departmentName" />
+      <mat-error>Required</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Description</mat-label>
+      <textarea matInput formControlName="description" rows="3"></textarea>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button mat-raised-button color="primary" (click)="save()" [disabled]="saving">
+    {{ isEdit ? 'Update' : 'Add' }}
+  </button>
+</mat-dialog-actions>

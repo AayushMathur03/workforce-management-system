@@ -1,0 +1,128 @@
+.top-bar {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 4px;
+  height: 56px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  z-index: 100;
+  background-color: var(--mat-sys-primary) !important;
+  color: var(--mat-sys-on-primary) !important;
+  font-family: var(--font-sans);
+  flex-shrink: 0;
+}
+
+/* Hamburger — ALWAYS visible on all screen sizes */
+.menu-btn {
+  margin-right: 4px;
+  color: var(--mat-sys-on-primary) !important;
+  flex-shrink: 0;
+
+  mat-icon { color: inherit !important; }
+}
+
+.page-title {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--mat-sys-on-primary) !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spacer {
+  flex: 1 1 auto;
+  min-width: 8px;
+}
+
+.action-btn {
+  color: white !important;
+  flex-shrink: 0;
+
+  ::ng-deep mat-icon { color: white !important; }
+}
+
+/* Force white icons inside the toolbar */
+:host ::ng-deep mat-toolbar.mat-toolbar {
+  .mat-mdc-icon-button,
+  .mdc-icon-button {
+    --mdc-icon-button-icon-color: white;
+    color: white !important;
+    .mat-icon, .mdc-icon-button__icon { color: white !important; }
+  }
+  a.mat-mdc-icon-button, a.mdc-icon-button {
+    --mdc-icon-button-icon-color: white;
+    color: white !important;
+    .mat-icon { color: white !important; }
+  }
+}
+
+/* User menu button */
+.user-menu-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 24px !important;
+  padding: 0 8px 0 4px !important;
+  color: white !important;
+  flex-shrink: 0;
+}
+
+.avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+  font-family: var(--font-sans);
+}
+
+.user-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.arrow-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  opacity: 0.85;
+}
+
+/* User menu dropdown header */
+.user-menu-header {
+  padding: 10px 16px 8px;
+  line-height: 1.4;
+  cursor: default;
+  pointer-events: none;
+
+  .user-menu-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    font-family: var(--font-sans);
+  }
+
+  .user-menu-role {
+    font-size: 0.72rem;
+    opacity: 0.6;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+}
+
+/* Responsive: hide user label on small screens */
+@media (max-width: 480px) {
+  .user-label { display: none; }
+  .page-title { font-size: 0.85rem; }
+}

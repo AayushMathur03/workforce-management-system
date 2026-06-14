@@ -1,0 +1,179 @@
+<div class="page-container">
+  <div class="page-header">
+    <div class="header-title-group">
+      <h2>My Profile</h2>
+      <p class="header-subtitle">View and update your personal information</p>
+    </div>
+  </div>
+
+  <div class="loading-container" *ngIf="loading">
+    <mat-spinner diameter="44"></mat-spinner>
+    <p>Loading your profile...</p>
+  </div>
+
+  <ng-container *ngIf="!loading && profile">
+    <div class="profile-layout">
+
+      <!-- Left: Info card -->
+      <mat-card class="wms-card info-card">
+        <mat-card-content>
+
+          <!-- Avatar + Name -->
+          <div class="avatar-section">
+            <div class="profile-avatar">{{ profile.firstName.charAt(0) }}{{ profile.lastName.charAt(0) }}</div>
+            <div class="avatar-info">
+              <div class="profile-name">{{ profile.fullName }}</div>
+              <div class="profile-username">&#64;{{ profile.username }}</div>
+              <div class="profile-badges">
+                <span class="status-chip" [class]="'status-' + profile.status.toLowerCase()">
+                  {{ profile.status }}
+                </span>
+                <span class="emp-code">EMP{{ profile.employeeId | number:'4.0-0' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <mat-divider></mat-divider>
+
+          <!-- Details Grid -->
+          <div class="info-grid">
+            <div class="info-item">
+              <mat-icon class="info-icon">badge</mat-icon>
+              <div class="info-content-inner">
+                <span class="info-label">Role</span>
+                <span class="info-value">{{ profile.roleName }}</span>
+              </div>
+            </div>
+            <div class="info-item">
+              <mat-icon class="info-icon">business</mat-icon>
+              <div class="info-content-inner">
+                <span class="info-label">Department</span>
+                <span class="info-value">{{ profile.departmentName }}</span>
+              </div>
+            </div>
+            <div class="info-item">
+              <mat-icon class="info-icon">email</mat-icon>
+              <div class="info-content-inner">
+                <span class="info-label">Email</span>
+                <span class="info-value">{{ profile.email }}</span>
+              </div>
+            </div>
+            <div class="info-item">
+              <mat-icon class="info-icon">cake</mat-icon>
+              <div class="info-content-inner">
+                <span class="info-label">Date of Birth</span>
+                <span class="info-value">{{ profile.dob | date:'mediumDate' }}</span>
+              </div>
+            </div>
+            <div class="info-item">
+              <mat-icon class="info-icon">work</mat-icon>
+              <div class="info-content-inner">
+                <span class="info-label">Date of Joining</span>
+                <span class="info-value">{{ profile.doj | date:'mediumDate' }}</span>
+              </div>
+            </div>
+            <div class="info-item">
+              <mat-icon class="info-icon">tag</mat-icon>
+              <div class="info-content-inner">
+                <span class="info-label">Employee ID</span>
+                <span class="info-value emp-code-inline">EMP{{ profile.employeeId | number:'4.0-0' }}</span>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Right: Edit + Change Password -->
+      <div class="right-panel">
+
+        <!-- Edit Profile Card -->
+        <mat-card class="wms-card">
+          <div class="form-card-header">
+            <div class="form-card-title">
+              <mat-icon>edit</mat-icon>
+              <span>Edit Profile</span>
+            </div>
+          </div>
+          <mat-card-content>
+            <form [formGroup]="editForm" (ngSubmit)="saveProfile()" class="form-grid">
+              <mat-form-field appearance="outline">
+                <mat-label>First Name</mat-label>
+                <input matInput formControlName="firstName" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Last Name</mat-label>
+                <input matInput formControlName="lastName" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Phone Number</mat-label>
+                <mat-icon matPrefix>phone</mat-icon>
+                <input matInput formControlName="phoneNumber" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Gender</mat-label>
+                <input matInput formControlName="gender" />
+              </mat-form-field>
+
+              <div class="form-actions">
+                <button mat-flat-button color="primary" type="submit" [disabled]="editForm.invalid || saving" id="btn-save-profile">
+                  <mat-spinner diameter="18" *ngIf="saving"></mat-spinner>
+                  <mat-icon *ngIf="!saving">save</mat-icon>
+                  {{ saving ? 'Saving...' : 'Save Changes' }}
+                </button>
+              </div>
+            </form>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Change Password Card -->
+        <mat-card class="wms-card">
+          <div class="form-card-header">
+            <div class="form-card-title">
+              <mat-icon>lock</mat-icon>
+              <span>Change Password</span>
+            </div>
+          </div>
+          <mat-card-content>
+            <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" class="pw-form">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Current Password</mat-label>
+                <input matInput formControlName="currentPassword" [type]="hideCurrentPw ? 'password' : 'text'" />
+                <button mat-icon-button matSuffix type="button" (click)="hideCurrentPw = !hideCurrentPw">
+                  <mat-icon>{{ hideCurrentPw ? 'visibility_off' : 'visibility' }}</mat-icon>
+                </button>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>New Password</mat-label>
+                <input matInput formControlName="newPassword" [type]="hideNewPw ? 'password' : 'text'" />
+                <button mat-icon-button matSuffix type="button" (click)="hideNewPw = !hideNewPw">
+                  <mat-icon>{{ hideNewPw ? 'visibility_off' : 'visibility' }}</mat-icon>
+                </button>
+                <mat-error *ngIf="passwordForm.get('newPassword')?.hasError('minlength')">Minimum 6 characters</mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Confirm New Password</mat-label>
+                <input matInput formControlName="confirmPassword" type="password" />
+                <mat-error *ngIf="passwordForm.hasError('mismatch')">Passwords do not match</mat-error>
+              </mat-form-field>
+
+              <div class="form-actions">
+                <button mat-flat-button color="primary" type="submit"
+                        [disabled]="passwordForm.invalid || changingPassword" id="btn-change-password">
+                  <mat-spinner diameter="18" *ngIf="changingPassword"></mat-spinner>
+                  <mat-icon *ngIf="!changingPassword">lock_reset</mat-icon>
+                  {{ changingPassword ? 'Changing...' : 'Change Password' }}
+                </button>
+              </div>
+            </form>
+          </mat-card-content>
+        </mat-card>
+
+      </div>
+    </div>
+  </ng-container>
+</div>

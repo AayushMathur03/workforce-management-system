@@ -1,0 +1,87 @@
+<div class="login-page">
+
+  <!-- Left: Brand Panel -->
+  <div class="brand-panel">
+    <div class="brand-content">
+      <div class="brand-logo">
+        <mat-icon>inventory_2</mat-icon>
+      </div>
+      <h1 class="brand-title">Workforce<br>Management<br>System</h1>
+      <p class="brand-tagline">
+        Streamline HR operations. Track attendance, manage projects,
+        and empower your team — all in one place.
+      </p>
+      <div class="brand-features">
+        <div class="feature-item">
+          <mat-icon>check_circle</mat-icon>
+          <span>Real-time attendance tracking</span>
+        </div>
+        <div class="feature-item">
+          <mat-icon>check_circle</mat-icon>
+          <span>Leave & project management</span>
+        </div>
+        <div class="feature-item">
+          <mat-icon>check_circle</mat-icon>
+          <span>Role-based access control</span>
+        </div>
+      </div>
+    </div>
+    <div class="brand-footer">
+      <span>Enterprise HRMS · v1.2.0</span>
+    </div>
+  </div>
+
+  <!-- Right: Login Form -->
+  <div class="form-panel">
+    <div class="form-card">
+      <div class="form-header">
+        <div class="form-logo-sm">
+          <mat-icon>inventory_2</mat-icon>
+        </div>
+        <h2>Welcome back</h2>
+        <p>Sign in to your account to continue</p>
+      </div>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form" autocomplete="on">
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Username</mat-label>
+          <input matInput formControlName="username" placeholder="Enter your username" autocomplete="username" id="login-username" />
+          <mat-icon matPrefix>person_outline</mat-icon>
+          <mat-error *ngIf="loginForm.get('username')?.hasError('required')">Username is required</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Password</mat-label>
+          <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password"
+                 placeholder="Enter your password" autocomplete="current-password" id="login-password" />
+          <mat-icon matPrefix>lock_outline</mat-icon>
+          <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword"
+                  [attr.aria-label]="'Toggle password visibility'" id="toggle-password">
+            <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          <mat-error *ngIf="loginForm.get('password')?.hasError('required')">Password is required</mat-error>
+          <mat-error *ngIf="loginForm.get('password')?.hasError('minlength')">Minimum 6 characters</mat-error>
+        </mat-form-field>
+
+        <div class="error-banner" *ngIf="errorMessage" id="login-error">
+          <mat-icon>error_outline</mat-icon>
+          <span>{{ errorMessage }}</span>
+        </div>
+
+        <button mat-flat-button color="primary" type="submit" class="full-width sign-in-btn"
+                [disabled]="loading" id="btn-login">
+          <mat-spinner diameter="20" *ngIf="loading"></mat-spinner>
+          <mat-icon *ngIf="!loading">login</mat-icon>
+          <span>{{ loading ? 'Signing in...' : 'Sign In' }}</span>
+        </button>
+
+      </form>
+
+      <div class="form-footer">
+        <span>Need help? Contact your system administrator</span>
+      </div>
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,179 @@
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h2>{{ authService.getRole() === 'Manager' ? 'My Team' : 'Employee Management' }}</h2>
+      <p class="header-subtitle" style="margin: 4px 0 0 0; font-size: 0.9rem; color: var(--mat-sys-on-surface-variant);">
+        {{ authService.getRole() === 'Manager' ? 'Your direct reports and team members' : 'Manage all employees in the system' }}
+      </p>
+    </div>
+    <div class="header-actions">
+      <button mat-flat-button color="primary" *ngIf="authService.isAdmin()" (click)="openAddDialog()">
+        <mat-icon>person_add</mat-icon> Add Employee
+      </button>
+      <span class="member-count-badge" *ngIf="authService.getRole() === 'Manager'">
+        {{ dataSource.data.length }} Members
+      </span>
+    </div>
+  </div>
+
+  <mat-card class="wms-card">
+    <mat-card-content>
+      <!-- Filters bar -->
+      <div class="filter-bar">
+        <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
+          <mat-label>Search by name or email...</mat-label>
+          <input matInput [value]="searchTerm" (input)="onSearch($any($event.target).value)" placeholder="Search by name, email, phone, or code..." />
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Department</mat-label>
+          <mat-select [(value)]="selectedDepartment" (selectionChange)="onFilterChange()">
+            <mat-option value="All">All Departments</mat-option>
+            <mat-option *ngFor="let d of departments" [value]="d">{{ d }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Role</mat-label>
+          <mat-select [(value)]="selectedRole" (selectionChange)="onFilterChange()">
+            <mat-option value="All">All Roles</mat-option>
+            <mat-option *ngFor="let r of roles" [value]="r">{{ r }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div *ngIf="loading" class="loading-container">
+        <mat-spinner diameter="48"></mat-spinner>
+      </div>
+
+      <ng-container *ngIf="!loading">
+        <!-- Admin View (Table) -->
+        <table mat-table [dataSource]="dataSource" matSort class="full-width" *ngIf="authService.getRole() !== 'Manager'">
+
+          <!-- Serial Number Column -->
+          <ng-container matColumnDef="serial">
+            <th mat-header-cell *matHeaderCellDef>#</th>
+            <td mat-cell *matCellDef="let element; let i = index">{{ i + 1 }}</td>
+          </ng-container>
+
+          <!-- Employee Code Column -->
+          <ng-container matColumnDef="code">
+            <th mat-header-cell *matHeaderCellDef>Code</th>
+            <td mat-cell *matCellDef="let e">
+              <span class="emp-code">EMP{{ e.employeeId.toString().padStart(4, '0') }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+            <td mat-cell *matCellDef="let e">{{ e.fullName }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="email">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Email</th>
+            <td mat-cell *matCellDef="let e">{{ e.email }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="phone">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Phone</th>
+            <td mat-cell *matCellDef="let e">{{ e.phoneNumber }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="department">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Department</th>
+            <td mat-cell *matCellDef="let e">{{ e.departmentName }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="role">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Role</th>
+            <td mat-cell *matCellDef="let e">{{ e.roleName }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
+            <td mat-cell *matCellDef="let e">
+              <span class="status-chip" [class]="'status-' + e.status.toLowerCase()">
+                {{ e.status }}
+              </span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let e">
+              <button mat-icon-button color="primary" *ngIf="authService.isManagerOrAdmin()" (click)="openEditDialog(e)" title="Edit">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" *ngIf="authService.isAdmin()" (click)="deactivate(e)" title="Deactivate">
+                <mat-icon>person_off</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+          <tr class="mat-row" *matNoDataRow>
+            <td class="mat-cell no-data" [attr.colspan]="displayedColumns.length">No employees found.</td>
+          </tr>
+        </table>
+
+        <!-- Manager View (My Team Cards) -->
+        <div *ngIf="authService.getRole() === 'Manager'">
+          <div class="team-grid" *ngIf="dataSource.data.length > 0; else noTeamMembers">
+            <mat-card class="team-card" *ngFor="let member of dataSource.data">
+              <mat-card-content>
+                <div class="card-header">
+                  <div class="avatar-circle" [style.background-color]="getAvatarColor(member.fullName)">
+                    {{ getInitials(member.fullName) }}
+                  </div>
+                  <div class="header-right">
+                    <span class="status-badge" [class]="'status-' + member.status.toLowerCase()">
+                      {{ member.status }}
+                    </span>
+                    <button mat-icon-button class="edit-card-btn" (click)="openEditDialog(member)" title="Edit" *ngIf="authService.isManagerOrAdmin()">
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="member-info">
+                  <h3 class="member-name">{{ member.fullName }}</h3>
+                  <span class="member-code">EMP{{ member.employeeId.toString().padStart(4, '0') }}</span>
+                </div>
+
+                <div class="member-details">
+                  <div class="detail-item">
+                    <mat-icon>business</mat-icon>
+                    <span>{{ member.departmentName }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <mat-icon>security</mat-icon>
+                    <span>{{ member.roleName }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <mat-icon>mail</mat-icon>
+                    <span class="truncate" [title]="member.email">{{ member.email }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <mat-icon>phone</mat-icon>
+                    <span>{{ member.phoneNumber }}</span>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+
+          <ng-template #noTeamMembers>
+            <div class="empty-state">
+              <mat-icon>group</mat-icon>
+              <p>No team members found matching search or filters.</p>
+            </div>
+          </ng-template>
+        </div>
+      </ng-container>
+
+    </mat-card-content>
+  </mat-card>
+</div>

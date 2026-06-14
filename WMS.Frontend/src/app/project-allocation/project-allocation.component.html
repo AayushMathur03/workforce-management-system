@@ -1,0 +1,181 @@
+<div class="page-container">
+  <div class="page-header">
+    <div class="header-title-group">
+      <h2>Project Allocations</h2>
+      <p class="header-subtitle">Assign employees to projects and manage active allocations</p>
+    </div>
+    <div class="header-actions">
+      <span class="count-badge" *ngIf="!loading">{{ dataSource.filteredData.length }}</span>
+      <button mat-flat-button color="primary" *ngIf="authService.isManagerOrAdmin() && !showForm" (click)="startAdd()" id="btn-allocate-project">
+        <mat-icon>person_add_alt</mat-icon> Allocate Project
+      </button>
+    </div>
+  </div>
+
+  <div class="content-layout">
+    <!-- List Table -->
+    <div class="table-container" [class.shrink]="showForm">
+      <mat-card class="wms-card">
+        <mat-card-content>
+          
+          <!-- Search Bar -->
+          <div class="filter-bar" *ngIf="!loading">
+            <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
+              <mat-label>Search allocations...</mat-label>
+              <input matInput (input)="applyFilter($any($event.target).value)" placeholder="Employee or project name..." />
+              <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
+          </div>
+
+          <!-- Loading -->
+          <div *ngIf="loading" class="loading-container">
+            <mat-spinner diameter="44"></mat-spinner>
+            <p>Loading allocations...</p>
+          </div>
+
+          <div class="table-scroll-wrapper" [class.hidden]="loading">
+            <table mat-table [dataSource]="dataSource" matSort class="full-width">
+
+              <!-- Employee Column -->
+              <ng-container matColumnDef="employeeName">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Employee</th>
+                <td mat-cell *matCellDef="let a">
+                  <div class="employee-cell">
+                    <div class="emp-avatar-badge">
+                      {{ getInitials(a.employeeName) }}
+                    </div>
+                    <div class="emp-name-info">
+                      <strong>{{ a.employeeName }}</strong>
+                      <span class="created-by-tag" *ngIf="a.createdBy">by {{ a.createdBy }}</span>
+                    </div>
+                  </div>
+                </td>
+              </ng-container>
+
+              <!-- Project Column -->
+              <ng-container matColumnDef="projectName">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Project</th>
+                <td mat-cell *matCellDef="let a">
+                  <div class="project-cell">
+                    <mat-icon class="project-icon">assignment</mat-icon>
+                    <span>{{ a.projectName }}</span>
+                  </div>
+                </td>
+              </ng-container>
+
+              <!-- Assigned Date Column -->
+              <ng-container matColumnDef="assignedOn">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Assigned Date</th>
+                <td mat-cell *matCellDef="let a">
+                  <div class="date-cell">
+                    <mat-icon class="date-icon">calendar_today</mat-icon>
+                    <span>{{ a.assignedOn | date:'mediumDate' }}</span>
+                  </div>
+                </td>
+              </ng-container>
+
+              <!-- Status Column -->
+              <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
+                <td mat-cell *matCellDef="let a">
+                  <span class="status-chip" [class]="a.status ? 'status-active' : 'status-inactive'">
+                    {{ a.status ? 'Active' : 'Ended' }}
+                  </span>
+                </td>
+              </ng-container>
+
+              <!-- Actions Column -->
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let a">
+                  <button mat-icon-button color="warn" *ngIf="a.status && authService.isManagerOrAdmin()" (click)="deactivateAllocation(a)" matTooltip="End Assignment">
+                    <mat-icon>person_remove</mat-icon>
+                  </button>
+                  <span *ngIf="!a.status || !authService.isManagerOrAdmin()">—</span>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+              <!-- Empty State -->
+              <tr class="mat-row" *matNoDataRow>
+                <td class="mat-cell" [attr.colspan]="displayedColumns.length">
+                  <div class="empty-state">
+                    <div class="empty-icon-wrap"><mat-icon>assignment_ind</mat-icon></div>
+                    <h3>No project allocations found</h3>
+                    <p>{{ dataSource.filter ? 'No allocations match your search.' : 'No project allocations have been recorded yet.' }}</p>
+                  </div>
+                </td>
+              </tr>
+            </table>
+
+            <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Allocation Form Panel -->
+    <div class="form-container" *ngIf="showForm">
+      <mat-card class="wms-card">
+        <div class="form-card-header">
+          <div class="form-card-title">
+            <mat-icon>assignment_turned_in</mat-icon>
+            <span>Allocate Project</span>
+          </div>
+          <button mat-icon-button (click)="cancelAdd()" title="Cancel">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+        <mat-card-content>
+          <form [formGroup]="allocForm" (ngSubmit)="onSubmit()" class="alloc-form">
+            
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Employee</mat-label>
+              <mat-select formControlName="empId" placeholder="Select Employee">
+                <mat-option *ngFor="let emp of employees" [value]="emp.employeeId">
+                  {{ emp.fullName }}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="allocForm.get('empId')?.hasError('required')">
+                Employee is required.
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Project</mat-label>
+              <mat-select formControlName="projectId" placeholder="Select Project">
+                <mat-option *ngFor="let proj of projects" [value]="proj.projectId">
+                  {{ proj.projectName }}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="allocForm.get('projectId')?.hasError('required')">
+                Project is required.
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Assign Date</mat-label>
+              <input matInput [matDatepicker]="picker" formControlName="assignedOn" />
+              <mat-hint>MM/DD/YYYY</mat-hint>
+              <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+              <mat-datepicker #picker></mat-datepicker>
+              <mat-error *ngIf="allocForm.get('assignedOn')?.hasError('required')">
+                Assign Date is required.
+              </mat-error>
+            </mat-form-field>
+
+            <div class="form-actions">
+              <button mat-stroked-button type="button" (click)="cancelAdd()">Cancel</button>
+              <button mat-flat-button color="primary" type="submit" [disabled]="allocForm.invalid || submitting">
+                <mat-spinner diameter="18" *ngIf="submitting"></mat-spinner>
+                <span *ngIf="!submitting">Allocate</span>
+              </button>
+            </div>
+          </form>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,43 @@
+<h2 mat-dialog-title>{{ isEdit ? 'Edit Client' : 'Add Client' }}</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" class="dialog-form">
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Client Name</mat-label>
+      <input matInput formControlName="clientName" placeholder="Enter client name" />
+      <mat-error *ngIf="form.get('clientName')?.hasError('required')">Client name is required</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Phone Number</mat-label>
+      <input matInput formControlName="clientPhoneNumber" placeholder="Enter phone number" type="number" />
+      <mat-error *ngIf="form.get('clientPhoneNumber')?.hasError('required')">Phone number is required</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Location</mat-label>
+      <input matInput formControlName="clientLocation" placeholder="City or region" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Address</mat-label>
+      <textarea matInput formControlName="clientAddress" placeholder="Full address" rows="3"></textarea>
+    </mat-form-field>
+
+    <mat-checkbox formControlName="status" *ngIf="isEdit">Active</mat-checkbox>
+
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button mat-raised-button color="primary" (click)="save()" [disabled]="form.invalid || saving">
+    {{ saving ? 'Saving...' : (isEdit ? 'Update' : 'Add') }}
+  </button>
+</mat-dialog-actions>
+
+<style>
+  .dialog-form { display: flex; flex-direction: column; gap: 8px; padding-top: 8px; min-width: 420px; }
+  .full-width { width: 100%; }
+</style>

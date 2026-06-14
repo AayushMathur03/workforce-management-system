@@ -1,0 +1,130 @@
+<h2 mat-dialog-title>{{ isEdit ? 'Edit Employee' : 'Add New Employee' }}</h2>
+
+<mat-dialog-content>
+  <div *ngIf="loadingData" class="dialog-loading">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading form data...</p>
+  </div>
+
+  <form [formGroup]="form" class="form-grid" *ngIf="!loadingData">
+
+    <mat-form-field appearance="outline">
+      <mat-label>First Name *</mat-label>
+      <input matInput formControlName="firstName" placeholder="First name" />
+      <mat-error>Required</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Last Name *</mat-label>
+      <input matInput formControlName="lastName" placeholder="Last name" />
+      <mat-error>Required</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Email *</mat-label>
+      <input matInput formControlName="email" [readonly]="isEdit" placeholder="Email address" />
+      <mat-error>Valid email required</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Phone Number *</mat-label>
+      <input matInput formControlName="phoneNumber" placeholder="10-digit phone" />
+      <mat-error>Required</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Gender *</mat-label>
+      <mat-select formControlName="gender">
+        <mat-option value="M">Male</mat-option>
+        <mat-option value="F">Female</mat-option>
+        <mat-option value="O">Other</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Date of Birth *</mat-label>
+      <input matInput [matDatepicker]="dobPicker" formControlName="dob" />
+      <mat-datepicker-toggle matSuffix [for]="dobPicker"></mat-datepicker-toggle>
+      <mat-datepicker #dobPicker></mat-datepicker>
+      <mat-error>Required</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Date of Joining *</mat-label>
+      <input matInput [matDatepicker]="dojPicker" formControlName="doj" />
+      <mat-datepicker-toggle matSuffix [for]="dojPicker"></mat-datepicker-toggle>
+      <mat-datepicker #dojPicker></mat-datepicker>
+      <mat-error>Required</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Department *</mat-label>
+      <mat-select formControlName="departmentId">
+        <mat-option *ngFor="let d of departments" [value]="d.departmentId">{{ d.departmentName }}</mat-option>
+      </mat-select>
+      <mat-error>Required</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Role *</mat-label>
+      <mat-select formControlName="roleId">
+        <mat-option *ngFor="let r of roles" [value]="r.roleId">{{ r.roleName }}</mat-option>
+      </mat-select>
+      <mat-error>Required</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Manager (Optional)</mat-label>
+      <mat-select formControlName="managerId">
+        <mat-option [value]="null">No Manager</mat-option>
+        <mat-option *ngFor="let m of managers" [value]="m.employeeId">{{ m.fullName }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <!-- Edit mode: show status -->
+    <ng-container *ngIf="isEdit">
+      <mat-form-field appearance="outline">
+        <mat-label>Status</mat-label>
+        <mat-select formControlName="status">
+          <mat-option value="Active">Active</mat-option>
+          <mat-option value="Inactive">Inactive</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </ng-container>
+
+    <!-- Add mode: show username and password -->
+    <ng-container *ngIf="!isEdit">
+      <mat-form-field appearance="outline">
+        <mat-label>Username *</mat-label>
+        <input matInput
+               formControlName="username"
+               (input)="onUsernameInput()"
+               (change)="onUsernameClear()"
+               placeholder="auto-generated from email" />
+        <mat-hint>Auto-generated from email; edit to override</mat-hint>
+        <mat-error>Required</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Password *</mat-label>
+        <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password" />
+        <button mat-icon-button matSuffix
+                (click)="hidePassword = !hidePassword"
+                [attr.aria-label]="'Toggle password visibility'"
+                type="button">
+          <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+        <mat-error>Minimum 6 characters</mat-error>
+      </mat-form-field>
+    </ng-container>
+
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()" [disabled]="saving">Cancel</button>
+  <button mat-raised-button color="primary" (click)="save()" [disabled]="saving || loadingData">
+    <mat-icon *ngIf="saving" style="animation: spin 1s linear infinite; display: inline-block;">refresh</mat-icon>
+    {{ saving ? 'Saving...' : (isEdit ? 'Update Employee' : 'Save Employee') }}
+  </button>
+</mat-dialog-actions>

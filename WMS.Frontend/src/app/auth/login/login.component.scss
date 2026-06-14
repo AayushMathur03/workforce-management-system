@@ -1,0 +1,247 @@
+/* ── Page Layout ── */
+.login-page {
+  display: flex;
+  min-height: 100vh;
+  background: #f8fafc;
+  font-family: var(--font-sans);
+}
+
+/* ── Left Brand Panel ── */
+.brand-panel {
+  flex: 0 0 44%;
+  background: linear-gradient(145deg, #4338ca 0%, #3b82f6 45%, #06b6d4 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 48px 52px;
+  position: relative;
+  overflow: hidden;
+  animation: fadeIn 0.5s ease-out;
+
+  /* Decorative circles */
+  &::before, &::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+  }
+  &::before {
+    width: 380px;
+    height: 380px;
+    top: -80px;
+    right: -80px;
+  }
+  &::after {
+    width: 260px;
+    height: 260px;
+    bottom: -60px;
+    left: -60px;
+  }
+}
+
+.brand-content {
+  position: relative;
+  z-index: 1;
+}
+
+.brand-logo {
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 32px;
+  backdrop-filter: blur(8px);
+
+  mat-icon {
+    font-size: 30px;
+    width: 30px;
+    height: 30px;
+    color: #fff;
+  }
+}
+
+.brand-title {
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.15;
+  letter-spacing: -0.5px;
+  margin: 0 0 20px 0;
+}
+
+.brand-tagline {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.65;
+  margin: 0 0 36px 0;
+  max-width: 340px;
+}
+
+.brand-features {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+  font-weight: 500;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    color: #86efac;
+    flex-shrink: 0;
+  }
+}
+
+.brand-footer {
+  position: relative;
+  z-index: 1;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.75rem;
+  letter-spacing: 0.03em;
+}
+
+/* ── Right Form Panel ── */
+.form-panel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  background: #ffffff;
+  animation: fadeInUp 0.4s ease-out 0.1s both;
+}
+
+.form-card {
+  width: 100%;
+  max-width: 420px;
+}
+
+/* Form Header */
+.form-header {
+  text-align: center;
+  margin-bottom: 36px;
+
+  .form-logo-sm {
+    display: none; /* Hidden on desktop — shown only on mobile */
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, #4338ca, #3b82f6);
+    border-radius: 12px;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+
+    mat-icon { color: #fff; font-size: 22px; width: 22px; height: 22px; }
+  }
+
+  h2 {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 6px 0;
+    letter-spacing: -0.4px;
+  }
+
+  p {
+    font-size: 0.9rem;
+    color: #64748b;
+    margin: 0;
+  }
+}
+
+/* Form Fields */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  .full-width { width: 100%; }
+}
+
+/* Error Banner */
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #b91c1c;
+  font-size: 0.875rem;
+  margin: 4px 0;
+  animation: fadeIn 0.2s ease-out;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+}
+
+/* Sign-In Button */
+.sign-in-btn {
+  margin-top: 12px !important;
+  height: 48px !important;
+  font-size: 0.95rem !important;
+  font-weight: 600 !important;
+  font-family: var(--font-sans) !important;
+  border-radius: 10px !important;
+  letter-spacing: 0.02em;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  mat-icon { font-size: 20px; }
+}
+
+/* Form Footer */
+.form-footer {
+  text-align: center;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid #f1f5f9;
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+/* ── Mobile: Stack Panels ── */
+@media (max-width: 768px) {
+  .login-page {
+    flex-direction: column;
+  }
+
+  .brand-panel {
+    flex: 0 0 auto;
+    padding: 32px 28px;
+    min-height: 200px;
+
+    .brand-title { font-size: 1.6rem; }
+    .brand-tagline, .brand-features { display: none; }
+    .brand-footer { display: none; }
+    .brand-logo { width: 48px; height: 48px; margin-bottom: 16px; }
+  }
+
+  .form-panel {
+    flex: 1;
+    padding: 32px 20px;
+  }
+
+  .form-header .form-logo-sm {
+    display: flex;
+  }
+}

@@ -1,0 +1,159 @@
+trigger:
+  branches:
+    include:
+      - main
+      - dev
+
+pool:
+  vmImage: 'windows-latest'
+
+stages:
+
+# ─────────────────────────────────────────
+# STAGE 1 — Build & Test .NET Backend
+# ─────────────────────────────────────────
+- stage: Build_Backend
+  displayName: 'Build & Test Backend'
+  jobs:
+  - job: DotNetBuild
+    displayName: 'Restore, Build, Test, Publish'
+    steps:
+
+    - task: UseDotNet@2
+      displayName: 'Use .NET 8 SDK'
+      inputs:
+        packageType: 'sdk'
+        version: '8.x'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Restore NuGet packages'
+      inputs:
+        command: 'restore'
+        projects: 'WMS-Solution.sln'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Build solution'
+      inputs:
+        command: 'build'
+        projects: 'WMS-Solution.sln'
+        arguments: '--configuration Release --no-restore'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Run xUnit tests'
+      inputs:
+        command: 'test'
+        projects: 'WMS.Tests/WMS.Tests.csproj'
+        arguments: '--configuration Release --no-build'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Publish API'
+      inputs:
+        command: 'publish'
+        publishWebProjects: false
+        projects: 'WMS.API/WMS.API.csproj'
+        arguments: '--configuration Release --output $(Build.ArtifactStagingDirectory)/api'
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Upload API artifact'
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)/api'
+        ArtifactName: 'api'
+
+# ─────────────────────────────────────────
+# STAGE 2 — Build Angular Frontend
+# ─────────────────────────────────────────
+- stage: Build_Frontend
+  displayName: 'Build Angular Frontend'
+  dependsOn: Build_Backend
+  jobs:
+  - job: AngularBuild
+    displayName: 'npm install & ng build'
+    steps:
+
+    - task: NodeTool@0
+      displayName: 'Use Node.js 20'
+      inputs:
+        versionSpec: '20.x'
+
+    - task: Npm@1
+      displayName: 'npm ci'
+      inputs:
+        command: 'ci'
+        workingDir: 'WMS.Frontend'
+
+    - task: Npm@1
+      displayName: 'ng build --configuration production'
+      inputs:
+        command: 'custom'
+        workingDir: 'WMS.Frontend'
+        customCommand: 'run build -- --configuration production'
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Upload frontend artifact'
+      inputs:
+        PathtoPublish: 'WMS.Frontend/dist/WMS.Frontend/browser'
+        ArtifactName: 'frontend'
+
+# ─────────────────────────────────────────
+# STAGE 3 — Deploy API to Azure App Service
+# ─────────────────────────────────────────
+- stage: Deploy_Backend
+  displayName: 'Deploy API to Azure App Service'
+  dependsOn: Build_Frontend
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  jobs:
+  - deployment: DeployAPI
+    displayName: 'Deploy to wms-api-aayush'
+    environment: 'production'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureWebApp@1
+            displayName: 'Deploy .NET API'
+            inputs:
+              azureSubscription: 'azure-wms'
+              appType: 'webApp'
+              appName: 'wms-api-aayush'
+              package: '$(Pipeline.Workspace)/api/*.zip'
+
+# ─────────────────────────────────────────
+# STAGE 4 — Deploy Angular to Static Web App
+# ─────────────────────────────────────────
+- stage: Deploy_Frontend
+  displayName: 'Deploy Frontend to Static Web App'
+  dependsOn: Deploy_Backend
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  jobs:
+  - job: DeployFrontend
+    displayName: 'Deploy Angular to Azure Static Web Apps'
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - checkout: self
+
+    - task: NodeTool@0
+      displayName: 'Use Node.js 20'
+      inputs:
+        versionSpec: '20.x'
+
+    - task: Npm@1
+      displayName: 'npm ci'
+      inputs:
+        command: 'ci'
+        workingDir: 'WMS.Frontend'
+
+    - task: Npm@1
+      displayName: 'ng build --configuration production'
+      inputs:
+        command: 'custom'
+        workingDir: 'WMS.Frontend'
+        customCommand: 'run build -- --configuration production'
+
+    - task: AzureStaticWebApp@0
+      displayName: 'Deploy to Static Web App'
+      inputs:
+        azure_static_web_apps_api_token: '$(STATIC_WEB_APP_TOKEN)'
+        app_location: 'WMS.Frontend/dist/WMS.Frontend/browser'
+        output_location: ''
+        skip_app_build: true

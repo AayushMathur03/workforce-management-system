@@ -1,0 +1,44 @@
+<h2 class="mat-mdc-dialog-title" style="margin: 0; padding: 20px 24px 16px; font-size: 1.25rem; font-weight: 500; line-height: 2rem; letter-spacing: .0125em;">Assign Resource to {{ project.projectName }}</h2>
+<mat-dialog-content>
+  <form [formGroup]="form" class="form-grid-dialog">
+    <!-- Role Filter Dropdown (Unbound to FormGroup, just for UI filtering) -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Filter by Role</mat-label>
+      <mat-select [value]="selectedRoleName" (selectionChange)="onRoleFilterChange($event.value)">
+        <mat-option value="all">All Roles</mat-option>
+        <mat-option *ngFor="let r of roles" [value]="r.roleName">{{ r.roleName }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <!-- Selected Employee Dropdown -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Select Resource</mat-label>
+      <mat-select formControlName="empId">
+        <mat-option *ngFor="let e of filteredEmployees" [value]="e.employeeId">
+          {{ e.fullName }} <span class="role-text" *ngIf="e.roleName">({{ e.roleName }})</span>
+        </mat-option>
+        <mat-option *ngIf="filteredEmployees.length === 0" disabled>No unassigned employees found</mat-option>
+      </mat-select>
+      <mat-error>Required</mat-error>
+    </mat-form-field>
+
+    <!-- Datepicker -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Assigned On</mat-label>
+      <input matInput [matDatepicker]="assignPicker" formControlName="assignedOn" />
+      <mat-datepicker-toggle matSuffix [for]="assignPicker"></mat-datepicker-toggle>
+      <mat-datepicker #assignPicker></mat-datepicker>
+      <mat-error>Required</mat-error>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button mat-raised-button color="primary" (click)="save()" [disabled]="form.invalid || saving">Assign</button>
+</mat-dialog-actions>
+
+<style>
+  .form-grid-dialog { display: flex; flex-direction: column; gap: 8px; padding-top: 8px; }
+  .full-width { width: 100%; }
+  .role-text { font-size: 0.8rem; opacity: 0.65; margin-left: 4px; font-weight: normal; }
+</style>
